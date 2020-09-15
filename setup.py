@@ -10,7 +10,7 @@ setup(
   author="Brian Blais",
   packages=['RobotSim373'],
   install_requires=[
-          'pybox2d',
+          'box2d',
           'matplotlib',
           'pyglet',
       ],
