@@ -1,4 +1,4 @@
-from numpy import sin,cos,degrees
+from numpy import sin,cos,degrees,radians
 from Box2D import b2,b2PolygonShape
 from Box2D import b2Vec2 as Vector
 

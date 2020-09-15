@@ -7,22 +7,22 @@
 get_ipython().run_line_magic('pylab', 'inline')
 
 
-# In[2]:
+# In[5]:
 
 
 from RobotSim373 import *
 
 
-# In[3]:
+# In[8]:
 
 
 def build(robot):
-    box1=Box(robot,3,4.5,name='right')
+    box1=Box(robot,3,4.5,name='right')  # location given, width=height=1.0 default
     box2=Box(robot,3,6.5,name='left')
     
     connect(box1,box2,'weld')
 
-    disk1=Disk(robot,2,5.5,name='center')
+    disk1=Disk(robot,2,5.5,name='center')  # radius = 0.5 default
     
     connect(disk1,box1,'distance')
     connect(disk1,box2,'distance')
@@ -31,7 +31,7 @@ def build(robot):
     
 
 
-# In[4]:
+# In[7]:
 
 
 def act_forward_backward_example(t,robot):
@@ -65,5 +65,17 @@ def act_forward_turn_example(t,robot):
 # In[ ]:
 
 
+env=Environment(24,24)  # size of the environment
+robot=Robot(env)
 
+robot=build(robot)
+
+# put a bunch of blocks
+for y in arange(1,20,0.5):
+    Box(env,10,y,width=0.2,height=0.2,density=0.01)
+
+run_sim(env,
+       dt=1/60,
+       dt_display=2,  # make this larger for a faster display
+       )
 
