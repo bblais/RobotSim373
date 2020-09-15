@@ -329,7 +329,7 @@ def run_sim(env,act,total_time,dt=1/60,dt_display=1):
                 plt.gca().add_collection(p) 
                 plt.axis('equal')
                 plt.axis([0,env.width,0,env.height])
-                title('%.2f' % env.t)
+                plt.title('%.2f' % env.t)
                 plt.show()
 
             env.t+=dt
