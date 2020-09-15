@@ -296,6 +296,7 @@ def connect(obj1,obj2,connection_type):
 
 def run_sim(env,act,total_time,dt=1/60,dt_display=1):
     from IPython.display import clear_output
+    import matplotlib
     from matplotlib import pyplot as plt
     from matplotlib.patches import Circle,Rectangle
     from matplotlib.collections import PatchCollection 
