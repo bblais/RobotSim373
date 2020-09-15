@@ -31,7 +31,7 @@ def build(robot):
     
 
 
-# In[4]:
+# In[6]:
 
 
 def act_forward_backward_example(t,robot):
@@ -62,7 +62,26 @@ def act_forward_turn_example(t,robot):
         
 
 
-# In[5]:
+# In[7]:
+
+
+env=Environment(24,24)  # size of the environment
+robot=Robot(env)
+
+robot=build(robot)
+
+# put a bunch of blocks
+for y in arange(1,20,0.5):
+    Box(env,10,y,width=0.2,height=0.2,density=0.01)
+
+run_sim(env,act_forward_backward_example,
+        total_time=80,  # seconds
+        dt=1/60,
+        dt_display=2,  # make this larger for a faster display
+       )
+
+
+# In[8]:
 
 
 env=Environment(24,24)  # size of the environment
