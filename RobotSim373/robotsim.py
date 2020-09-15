@@ -294,16 +294,13 @@ def connect(obj1,obj2,connection_type):
                             
 
 
-def run_sim(env,dt,dt_display=None):
+def run_sim(env,act,total_time,dt=1/60,dt_display=1):
     from IPython.display import clear_output
     from matplotlib import pyplot as plt
     from matplotlib.patches import Circle,Rectangle
     from matplotlib.collections import PatchCollection 
     
     
-    if dt_display is None:
-        dt_display=dt
-
     env.t=0
     robot=env.robot
 
@@ -312,7 +309,7 @@ def run_sim(env,dt,dt_display=None):
     while not stop:
         try:
 
-            act_forward_turn_example(env.t,robot)
+            act(env.t,robot)
 
             env.update(dt)
 
@@ -337,7 +334,7 @@ def run_sim(env,dt,dt_display=None):
             env.t+=dt
 
 
-            if env.t>80:
+            if env.t>total_time:
                 stop=True
 
         except KeyboardInterrupt:
