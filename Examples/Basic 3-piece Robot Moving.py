@@ -13,7 +13,7 @@ get_ipython().run_line_magic('pylab', 'inline')
 from RobotSim373 import *
 
 
-# In[3]:
+# In[18]:
 
 
 def build(robot):
@@ -29,9 +29,23 @@ def build(robot):
     
     return robot
     
+    
+def build_no_connect(robot):
+    box1=Box(robot,3,4.5,name='right')  # location given, width=height=1.0 default
+    box2=Box(robot,3,6.5,name='left')
+    
+    #connect(box1,box2,'weld')
+
+    disk1=Disk(robot,2,5.5,name='center')  # radius = 0.5 default
+    
+    #connect(disk1,box1,'distance')
+    #connect(disk1,box2,'distance')
+    
+    return robot
+        
 
 
-# In[6]:
+# In[19]:
 
 
 def act_forward_backward_example(t,robot):
@@ -45,6 +59,17 @@ def act_forward_backward_example(t,robot):
     else:
         robot['left'].F=0
         robot['right'].F=0
+
+        
+def act_center_force_example(t,robot):
+    
+    if t<10:
+        robot['center'].F=0.4
+    elif t<60:
+        robot['center'].F=-0.4
+    else:
+        robot['center'].F=0
+        
         
 def act_forward_turn_example(t,robot):
     
@@ -62,7 +87,7 @@ def act_forward_turn_example(t,robot):
         
 
 
-# In[7]:
+# In[21]:
 
 
 env=Environment(24,24)  # size of the environment
@@ -81,7 +106,64 @@ run_sim(env,act_forward_backward_example,
        )
 
 
-# In[8]:
+# In[22]:
+
+
+env=Environment(24,24)  # size of the environment
+robot=Robot(env)
+
+robot=build_no_connect(robot)
+
+# put a bunch of blocks
+for y in arange(1,20,0.5):
+    Box(env,10,y,width=0.2,height=0.2,density=0.01)
+
+run_sim(env,act_forward_backward_example,
+        total_time=80,  # seconds
+        dt=1/60,
+        dt_display=2,  # make this larger for a faster display
+       )
+
+
+# In[24]:
+
+
+env=Environment(24,24)  # size of the environment
+robot=Robot(env)
+
+robot=build(robot)
+
+# put a bunch of blocks
+for y in arange(1,20,0.5):
+    Box(env,10,y,width=0.2,height=0.2,density=0.01)
+
+run_sim(env,act_center_force_example,
+        total_time=80,  # seconds
+        dt=1/60,
+        dt_display=2,  # make this larger for a faster display
+       )
+
+
+# In[25]:
+
+
+env=Environment(24,24)  # size of the environment
+robot=Robot(env)
+
+robot=build_no_connect(robot)
+
+# put a bunch of blocks
+for y in arange(1,20,0.5):
+    Box(env,10,y,width=0.2,height=0.2,density=0.01)
+
+run_sim(env,act_center_force_example,
+        total_time=80,  # seconds
+        dt=1/60,
+        dt_display=2,  # make this larger for a faster display
+       )
+
+
+# In[9]:
 
 
 env=Environment(24,24)  # size of the environment
