@@ -177,7 +177,7 @@ class Box(object):
     def patch(self):
         from matplotlib.patches import Circle,Rectangle        
         return Rectangle((self.corner_x,self.corner_y),
-                               self.width,self.width,
+                               self.width,self.height,
                                self.angle)        
     
     @property
