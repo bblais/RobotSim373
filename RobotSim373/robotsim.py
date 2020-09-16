@@ -314,7 +314,14 @@ def run_sim(env,act,total_time,dt=1/60,dt_display=1):
 
             env.update(dt)
 
-            if env.t>next_display_t:
+            env.t+=dt
+
+            if env.t>total_time:
+                stop=True
+                next_display_t=env.t-1
+
+
+            if env.t>=next_display_t:
                 next_display_t=env.t+dt_display
 
                 clear_output(wait=True)
@@ -332,11 +339,6 @@ def run_sim(env,act,total_time,dt=1/60,dt_display=1):
                 plt.title('%.2f' % env.t)
                 plt.show()
 
-            env.t+=dt
-
-
-            if env.t>total_time:
-                stop=True
 
         except KeyboardInterrupt:
             stop=True    
