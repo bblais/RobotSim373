@@ -1,4 +1,5 @@
-from numpy import sin,cos,degrees,radians
+from numpy import sin,cos,degrees,radians,ndarray
+from matplotlib.pyplot import imread
 from Box2D import b2,b2PolygonShape
 from Box2D import b2Vec2 as Vector
 
@@ -35,10 +36,38 @@ def vec_mag_ang(mag,ang):
 # all units in real units
 class Environment(object):
 
-    def __init__(self,window_height=24,window_width=48):
+    def __init__(self,width=24,height=None,image=None):
+
         self.world = b2.world(gravity=(0, 0), doSleep=True)
-        self.height = window_height
-        self.width = window_width
+
+        if not image is None:
+            if isinstance(image,str):                
+                self.im=imread(image)
+            elif isinstance(image,ndarray):
+                self.im=image
+            else:
+                raise ValueError
+
+            height=width*self.im.shape[0]//self.im.shape[1]
+        else:
+            self.im=None
+        
+        if height is None:
+            height=width
+
+
+        self.height = height
+        self.width = width
+
+        if self.im is None:
+            self.pixel_height=height
+            self.pixel_width=width
+        else:
+            self.pixel_height=self.im.shape[0]
+            self.pixel_width=self.im.shape[1]
+
+
+
 
         self.boundary = self.world.CreateStaticBody(position=(0, 0))
         self.boundary.CreateEdgeChain([(0, self.height),
@@ -53,6 +82,27 @@ class Environment(object):
         
         self.objects=[]
         
+    def to_pixels(self,x,y=None):
+
+        if y is None:
+            x,y=x
+
+        W,H=self.width,self.height
+        pW,pH=self.pixel_width,self.pixel_height
+
+        px=int(x/W*pW)
+        py=int((H-y)/H*pH)
+
+        return int(px),int(py)
+    
+    def to_real(self,px,py=None):
+
+        if py is None:
+            px,py=px
+
+        x=px*self.width/self.pixel_width
+        y=(self.pixel_height-1-py)*self.height/self.pixel_height
+
     def __iadd__(self,other):
         self.objects.append(other)
         return self
@@ -75,16 +125,18 @@ class Robot(object):
     def __init__(self,env):
         self.env=env
         self.env.robot=self
-        self.world=self.env.world
         
         self._color='g'
         self.objects=[]
         
+        self.message=None
+        self.log=[]
+
     def update(self,dt):
         for obj in self.objects:
             obj.update(dt)
         
-        
+
     @property
     def forces(self):
         return [obj.F for obj in self.objects]
@@ -136,11 +188,17 @@ class Robot(object):
 
 class Box(object):
     
-    def __init__(self,env,x,y,angle=0,width=1,height=1,name=None,
+    def __init__(self,parent,x,y,angle=0,width=1,height=1,name=None,
                 angularDamping=0.2,linearDamping=0.2,
                 restitution=0.2,friction=0.1,density=0.4):
         self.joints=[]
-        self.env=env
+        if isinstance(parent,Environment):
+            self.env=parent
+            self.parent=parent
+        else:
+            self.env=parent.env
+            self.parent=parent
+
         self.width=width
         self.height=height
         
@@ -157,11 +215,20 @@ class Box(object):
         self.F=0
         self.color='b'
         if name is None:
-            self.name='Box %d' % len(env.objects)
+            self.name='Box %d' % len(self.parent.objects)
         else:
             self.name=name
             
-        env+=self
+        self.parent+=self
+
+    def read_color(self):
+
+        if self.env.im is None:
+            return []
+
+        px,py=self.env.to_pixels(self.position.x,self.position.y)
+        return self.env.im[py,px,:]
+
 
     @property
     def corner_position(self):
@@ -211,11 +278,18 @@ class Box(object):
 
 class Disk(object):
     
-    def __init__(self,env,x,y,angle=0,radius=0.5,name=None,
+    def __init__(self,parent,x,y,angle=0,radius=0.5,name=None,
                 angularDamping=0.2,linearDamping=0.2,
                 restitution=0.2,friction=0.1,density=0.4):
         self.joints=[]
-        self.env=env
+
+        if isinstance(parent,Environment):
+            self.env=parent
+            self.parent=parent
+        else:
+            self.env=parent.env
+            self.parent=parent
+
         self.radius=radius
         
         self.body = self.env.world.CreateDynamicBody(position=(x, y), 
@@ -233,17 +307,26 @@ class Disk(object):
         self.F=0
         self.color='b'
         if name is None:
-            self.name='Circle %d' % len(env.objects)
+            self.name='Circle %d' % len(self.parent.objects)
         else:
             self.name=name
         
-        env+=self
+        self.parent+=self
+
         
 
     def patch(self):
         from matplotlib.patches import Circle,Rectangle        
         return Circle((self.x,self.y),
                                self.radius)        
+    def read_color(self):
+
+        if self.env.im is None:
+            return []
+
+        px,py=self.env.to_pixels(self.position.x,self.position.y)
+        return self.env.im[py,px,:]
+
         
     @property
     def position(self):
@@ -327,6 +410,10 @@ def run_sim(env,act,total_time,dt=1/60,dt_display=1):
                 clear_output(wait=True)
                 plt.figure(figsize=(10,10*env.height//env.width))
 
+                if not env.im is None:
+                    plt.imshow(env.im,
+                    interpolation=None,
+                            extent=(0,env.width,0,env.height))
 
                 patches,colors = zip(*[(b.patch(),b.color) for b in env.objects+robot.objects])
                 p = PatchCollection(patches, 
@@ -336,7 +423,11 @@ def run_sim(env,act,total_time,dt=1/60,dt_display=1):
                 plt.gca().add_collection(p) 
                 plt.axis('equal')
                 plt.axis([0,env.width,0,env.height])
-                plt.title('%.2f' % env.t)
+                if env.robot.message is None:
+                    plt.title('%.2f' % env.t)
+                else:
+                    plt.title('%.2f Message: %s' % (env.t,
+                                str(env.robot.message)))
                 plt.show()
 
 
