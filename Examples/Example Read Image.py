@@ -15,7 +15,7 @@ from RobotSim373 import *
 
 # Each object in a robot has a color sensor, for the pixel below that part (center).
 
-# In[3]:
+# In[12]:
 
 
 def build(robot):
@@ -32,7 +32,7 @@ def build(robot):
     return robot
 
 
-# In[6]:
+# In[14]:
 
 
 def act_forward_backward_example(t,robot):

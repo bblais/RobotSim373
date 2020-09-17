@@ -192,6 +192,8 @@ class Box(object):
                 angularDamping=0.2,linearDamping=0.2,
                 restitution=0.2,friction=0.1,density=0.4):
         self.joints=[]
+        self.motors=[]
+
         if isinstance(parent,Environment):
             self.env=parent
             self.parent=parent
@@ -282,6 +284,7 @@ class Disk(object):
                 angularDamping=0.2,linearDamping=0.2,
                 restitution=0.2,friction=0.1,density=0.4):
         self.joints=[]
+        self.motors=[]
 
         if isinstance(parent,Environment):
             self.env=parent
@@ -351,7 +354,7 @@ class Disk(object):
                         
 
 
-def connect(obj1,obj2,connection_type):
+def connect(obj1,obj2,connection_type,**kwargs):
     if connection_type=='distance':
 
         joint = obj1.env.world.CreateDistanceJoint(
@@ -359,7 +362,7 @@ def connect(obj1,obj2,connection_type):
                             bodyB=obj2.body,
                             anchorA=obj1.body.position,
                             anchorB=obj2.body.position,
-                            dampingRatio=10.0)
+                            dampingRatio=10.0,**kwargs)
     elif connection_type=='weld':
         joint = obj1.env.world.CreateWeldJoint(
                             bodyA=obj1.body,
@@ -367,8 +370,20 @@ def connect(obj1,obj2,connection_type):
                             anchor= (
                                 (obj1.body.position.x+obj2.body.position.x)/2,
                                 (obj1.body.position.y+obj2.body.position.y)/2,
-                            ),)
-    
+                            ),**kwargs)
+
+    elif connection_type=='motor':
+        offset=(obj1.body.position-obj2.body.position)/2
+        joint = obj1.env.world.CreateRevoluteJoint(
+            bodyA=obj1.body, 
+            bodyB=obj2.body, 
+            localAnchorA=-offset,
+            localAnchorB=offset,
+            maxMotorTorque=10000,
+            **kwargs)    
+
+        obj1.motors.append(joint)
+        obj2.motors.append(joint)
     else:
         raise NotImplementedError
         
