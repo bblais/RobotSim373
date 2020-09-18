@@ -275,7 +275,7 @@ class Box(object):
     
     def update(self,dt):
         if self.F:
-            F_hat=vec_mag_ang(1,degrees(self.body.angle+self.F_angle))
+            F_hat=vec_mag_ang(1,degrees(self.body.angle)+self.F_angle)
             F_position=Vector(self.body.position)
             self.body.ApplyForce(self.F*F_hat, F_position, True)
                     
@@ -351,7 +351,7 @@ class Disk(object):
     
     def update(self,dt):
         if self.F:
-            F_hat=vec_mag_ang(1,degrees(self.body.angle+self.F_angle))
+            F_hat=vec_mag_ang(1,degrees(self.body.angle)+self.F_angle)
             F_position=Vector(self.body.position)
             self.body.ApplyForce(self.F*F_hat, F_position, True)
                         
