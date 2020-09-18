@@ -69,13 +69,16 @@ class Environment(object):
 
 
 
-        self.boundary = self.world.CreateStaticBody(position=(0, 0))
+        self.boundary = self.world.CreateStaticBody(position=(0, 0),
+                    userData={'name':'walls'})
         self.boundary.CreateEdgeChain([(0, self.height),
                                 (self.width, self.height),
                                 (self.width, 0),
                                 (0,0),
                                 (0, self.height)]
                                 )
+
+        
         self.t=0.0
 
         self.robot=None
@@ -207,15 +210,18 @@ class Box(object):
         self.body = self.env.world.CreateDynamicBody(position=(x, y), 
                                                     angle=0,
                                                      angularDamping=angularDamping,
-                                                     linearDamping=linearDamping)
+                                                     linearDamping=linearDamping,
+                                                  userData={'name':name})
 
         self.body.angle=radians(angle)
         self.fixture=self.body.CreatePolygonFixture(box=(self.width/2,self.height/2), 
                                                         density=density, friction=friction,
-                                                        restitution=restitution,)
+                                                        restitution=restitution,userData={'name':name})
             
         self.F=0
         self.F_angle=0
+        self.τ=0
+
 
         self.color='b'
         if name is None:
@@ -278,7 +284,20 @@ class Box(object):
             F_hat=vec_mag_ang(1,degrees(self.body.angle)+self.F_angle)
             F_position=Vector(self.body.position)
             self.body.ApplyForce(self.F*F_hat, F_position, True)
-                    
+
+        if self.τ:
+            self.body.ApplyTorque(self.τ,True)
+
+
+    def plot_orientation(self):
+        from matplotlib.pyplot import plot
+        x1,y1=self.position
+        x2,y2=self.width/2*cos(radians(self.angle))+x1,self.width/2*sin(radians(self.angle))+y1
+        plot([x1,x2],[y1,y2],'r-',lw=1)
+
+        x2,y2=self.F/2*cos(radians(self.angle+self.F_angle))+x1,self.F/2*sin(radians(self.angle+self.F_angle))+y1
+        plot([x1,x2],[y1,y2],'c-',lw=1)
+
 
 class Disk(object):
     
@@ -299,7 +318,8 @@ class Disk(object):
         
         self.body = self.env.world.CreateDynamicBody(position=(x, y), 
                                             angle=0,angularDamping=angularDamping,
-                                                     linearDamping=linearDamping)
+                                                     linearDamping=linearDamping,
+                                                  userData={'name':name})
 
         self.body.angle=radians(angle)
         
@@ -307,10 +327,12 @@ class Disk(object):
                                                    friction=friction, 
                                                    density=density,
                                                   restitution=restitution,
-                                                  )
+                                                  userData={'name':name})
             
         self.F=0
         self.F_angle=0
+        self.τ=0
+
         self.color='b'
         if name is None:
             self.name='Circle %d' % len(self.parent.objects)
@@ -324,7 +346,17 @@ class Disk(object):
     def patch(self):
         from matplotlib.patches import Circle,Rectangle        
         return Circle((self.x,self.y),
-                               self.radius)        
+                               self.radius)
+
+    def plot_orientation(self):
+        from matplotlib.pyplot import plot
+        x1,y1=self.position
+        x2,y2=self.radius*cos(radians(self.angle))+x1,self.radius*sin(radians(self.angle))+y1
+        plot([x1,x2],[y1,y2],'r-',lw=1)
+
+        x2,y2=self.F/2*cos(radians(self.angle+self.F_angle))+x1,self.F/2*sin(radians(self.angle+self.F_angle))+y1
+        plot([x1,x2],[y1,y2],'c-',lw=1)
+
     def read_color(self):
 
         if self.env.im is None:
@@ -355,9 +387,25 @@ class Disk(object):
             F_position=Vector(self.body.position)
             self.body.ApplyForce(self.F*F_hat, F_position, True)
                         
+        if self.τ:
+            self.body.ApplyTorque(self.τ,True)
+
 
 
 def connect(obj1,obj2,connection_type,**kwargs):
+
+    if isinstance(obj1,list):
+        for o1 in obj1:
+            connect(o1,obj2,connection_type,**kwargs)
+        return
+
+    if isinstance(obj2,list):
+        for o2 in obj2:
+            connect(obj1,o2,connection_type,**kwargs)
+
+        return
+
+
     if connection_type=='distance':
 
         joint = obj1.env.world.CreateDistanceJoint(
@@ -395,7 +443,9 @@ def connect(obj1,obj2,connection_type,**kwargs):
                             
 
 
-def run_sim(env,act,total_time,dt=1/60,dt_display=1):
+def run_sim(env,act,total_time,dt=1/60,dt_display=1,
+            figure_width=10,
+            plot_orientation=True):
     from IPython.display import clear_output
     import matplotlib
     from matplotlib import pyplot as plt
@@ -426,7 +476,7 @@ def run_sim(env,act,total_time,dt=1/60,dt_display=1):
                 next_display_t=env.t+dt_display
 
                 clear_output(wait=True)
-                plt.figure(figsize=(10,10*env.height//env.width))
+                plt.figure(figsize=(figure_width,figure_width*env.height//env.width))
 
                 if not env.im is None:
                     plt.imshow(env.im,
@@ -439,6 +489,11 @@ def run_sim(env,act,total_time,dt=1/60,dt_display=1):
                                 cmap = matplotlib.cm.jet, 
                                 alpha = 0.8)
                 plt.gca().add_collection(p) 
+                
+                if plot_orientation:
+                    for obj in robot.objects:
+                        obj.plot_orientation()
+
                 plt.axis('equal')
                 plt.axis([0,env.width,0,env.height])
                 if env.robot.message is None:
