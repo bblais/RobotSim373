@@ -215,6 +215,8 @@ class Box(object):
                                                         restitution=restitution,)
             
         self.F=0
+        self.F_angle=0
+
         self.color='b'
         if name is None:
             self.name='Box %d' % len(self.parent.objects)
@@ -226,7 +228,7 @@ class Box(object):
     def read_color(self):
 
         if self.env.im is None:
-            return []
+            return [999,999,999]
 
         px,py=self.env.to_pixels(self.position.x,self.position.y)
         return self.env.im[py,px,:]
@@ -273,7 +275,7 @@ class Box(object):
     
     def update(self,dt):
         if self.F:
-            F_hat=vec_mag_ang(1,degrees(self.body.angle))
+            F_hat=vec_mag_ang(1,degrees(self.body.angle+self.F_angle))
             F_position=Vector(self.body.position)
             self.body.ApplyForce(self.F*F_hat, F_position, True)
                     
@@ -308,6 +310,7 @@ class Disk(object):
                                                   )
             
         self.F=0
+        self.F_angle=0
         self.color='b'
         if name is None:
             self.name='Circle %d' % len(self.parent.objects)
@@ -348,7 +351,7 @@ class Disk(object):
     
     def update(self,dt):
         if self.F:
-            F_hat=vec_mag_ang(1,degrees(self.body.angle))
+            F_hat=vec_mag_ang(1,degrees(self.body.angle+self.F_angle))
             F_position=Vector(self.body.position)
             self.body.ApplyForce(self.F*F_hat, F_position, True)
                         
