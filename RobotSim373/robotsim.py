@@ -1,4 +1,4 @@
-from numpy import sin,cos,degrees,radians,ndarray
+from numpy import sin,cos,degrees,radians,ndarray,sqrt
 from matplotlib.pyplot import imread
 from Box2D import b2,b2PolygonShape
 from Box2D import b2Vec2 as Vector
@@ -32,6 +32,30 @@ def vec_mag_ang(mag,ang):
     y=mag*sin(radians(ang))
     return Vector(x,y)
 
+from Box2D import b2RayCastCallback
+class RayCastMultipleCallback(b2RayCastCallback):
+    """This raycast collects multiple hits."""
+
+    def __repr__(self):
+        return 'Multiple hits'
+
+    def __init__(self, **kwargs):
+        b2RayCastCallback.__init__(self, **kwargs)
+        self.fixture = None
+        self.hit = False
+        self.points = []
+        self.normals = []
+        self.fixtures=[]
+
+    def ReportFixture(self, fixture, point, normal, fraction):
+        from Box2D import b2Vec2
+        
+        self.hit = True
+        self.fixture = fixture
+        self.fixtures.append(fixture)
+        self.points.append(b2Vec2(point))
+        self.normals.append(b2Vec2(normal))
+        return 1.0
 
 # all units in real units
 class Environment(object):
@@ -207,7 +231,7 @@ class Box(object):
         self.width=width
         self.height=height
         
-        self.body = self.env.world.CreateDynamicBody(position=(x, y), 
+        self.body = self.env.world.CreateDynamicBody(position=(float(x), float(y)), 
                                                     angle=0,
                                                      angularDamping=angularDamping,
                                                      linearDamping=linearDamping,
@@ -230,6 +254,44 @@ class Box(object):
             self.name=name
             
         self.parent+=self
+
+    def read_distance(self):
+        callback=RayCastMultipleCallback()
+
+        length = sqrt(self.env.width**2+self.env.height**2)
+        point1 = self.position
+        d = (length * cos(radians(self.angle)), length * sin(radians(self.angle)))
+        point2 = point1 + d
+
+        self.env.world.RayCast(callback, point1, point2)
+        
+        distances=[]
+        for p in callback.points:
+            x2,y2=p
+            x1,y1=self.position
+            distances.append(sqrt((x2-x1)**2+(y2-y1)**2))
+
+        min_dist=1e500
+        min_obj=None
+        for f,d in zip(callback.fixtures,distances):
+            obj=[_ for _ in self.env.objects if _.fixture == f]
+            if f in self.env.boundary.fixtures:
+                obj+=[self.env.boundary]
+
+            assert ((len(obj)==0) or (len(obj)==1))
+
+            if obj:
+                if d<min_dist:
+                    min_dist=d
+                    min_obj=obj[0]
+
+        assert not min_obj is None
+
+        return min_dist
+                    
+
+
+
 
     def read_color(self):
 
@@ -316,7 +378,7 @@ class Disk(object):
 
         self.radius=radius
         
-        self.body = self.env.world.CreateDynamicBody(position=(x, y), 
+        self.body = self.env.world.CreateDynamicBody(position=(float(x), float(y)), 
                                             angle=0,angularDamping=angularDamping,
                                                      linearDamping=linearDamping,
                                                   userData={'name':name})
@@ -348,6 +410,40 @@ class Disk(object):
         return Circle((self.x,self.y),
                                self.radius)
 
+    def read_distance(self):
+        callback=RayCastMultipleCallback()
+
+        length = sqrt(self.env.width**2+self.env.height**2)
+        point1 = self.position
+        d = (length * cos(radians(self.angle)), length * sin(radians(self.angle)))
+        point2 = point1 + d
+
+        self.env.world.RayCast(callback, point1, point2)
+        
+        distances=[]
+        for p in callback.points:
+            x2,y2=p
+            x1,y1=self.position
+            distances.append(sqrt((x2-x1)**2+(y2-y1)**2))
+
+        min_dist=1e500
+        min_obj=None
+        for f,d in zip(callback.fixtures,distances):
+            obj=[_ for _ in self.env.objects if _.fixture == f]
+            if f in self.env.boundary.fixtures:
+                obj+=[self.env.boundary]
+
+            assert ((len(obj)==0) or (len(obj)==1))
+
+            if obj:
+                if d<min_dist:
+                    min_dist=d
+                    min_obj=obj[0]
+
+        assert not min_obj is None
+
+        return min_dist
+                    
     def plot_orientation(self):
         from matplotlib.pyplot import plot
         x1,y1=self.position
