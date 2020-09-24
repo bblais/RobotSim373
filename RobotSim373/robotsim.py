@@ -3,6 +3,32 @@ from matplotlib.pyplot import imread
 from Box2D import b2,b2PolygonShape
 from Box2D import b2Vec2 as Vector
 
+import matplotlib
+matplotlib.rcParams["figure.figsize"]=10,8
+matplotlib.rcParams["axes.titlesize"]=24
+matplotlib.rcParams["axes.labelsize"]=20
+matplotlib.rcParams["lines.linewidth"]=3
+matplotlib.rcParams["lines.markersize"]=5
+matplotlib.rcParams["xtick.labelsize"]=20
+matplotlib.rcParams["ytick.labelsize"]=20
+matplotlib.rcParams["axes.grid"]=True
+matplotlib.rcParams["grid.linestyle"]='-'
+matplotlib.rcParams["grid.color"]='cccccc'
+matplotlib.rcParams["font.size"]=20
+matplotlib.rcParams["font.family"]='sans-serif'
+matplotlib.rcParams["legend.fontsize"]=20
+matplotlib.rcParams["legend.frameon"]=False
+matplotlib.rcParams["legend.numpoints"]=1
+matplotlib.rcParams["legend.scatterpoints"]=1
+matplotlib.rcParams["lines.solid_capstyle"]='round'
+matplotlib.rcParams["text.color"]=[0.15]*3
+matplotlib.rcParams["xtick.color"]=[0.15]*3
+matplotlib.rcParams["ytick.color"]=[0.15]*3
+matplotlib.rcParams["xtick.direction"]='out'
+matplotlib.rcParams["ytick.direction"]='out'
+matplotlib.rcParams["axes.axisbelow"]=True
+
+
 b2p=30.0 # factor to convert coords
 p2b=1/b2p
 
@@ -102,6 +128,8 @@ class Environment(object):
                                 (0, self.height)]
                                 )
 
+
+
         
         self.t=0.0
 
@@ -163,6 +191,9 @@ class Robot(object):
         for obj in self.objects:
             obj.update(dt)
         
+    @property
+    def mass(self):
+        return sum([obj.mass for obj in self.objects])
 
     @property
     def forces(self):
@@ -245,6 +276,8 @@ class Box(object):
         self.F=0
         self.F_angle=0
         self.τ=0
+
+        self.mass=self.body.mass
 
 
         self.color='b'
@@ -337,6 +370,15 @@ class Box(object):
     def y(self):
         return self.position[1]
     
+
+    @property
+    def vx(self):
+        return self.body.linearVelocity[0]
+
+    @property
+    def vy(self):
+        return self.body.linearVelocity[1]
+
     @property
     def angle(self):
         return self.body.angle*180/3.14159
@@ -394,6 +436,7 @@ class Disk(object):
         self.F=0
         self.F_angle=0
         self.τ=0
+        self.mass=self.body.mass
 
         self.color='b'
         if name is None:
@@ -472,6 +515,13 @@ class Disk(object):
     @property
     def y(self):
         return self.position[1]
+    @property
+    def vx(self):
+        return self.body.linearVelocity[0]
+
+    @property
+    def vy(self):
+        return self.body.linearVelocity[1]
     
     @property
     def angle(self):
@@ -481,6 +531,7 @@ class Disk(object):
         if self.F:
             F_hat=vec_mag_ang(1,degrees(self.body.angle)+self.F_angle)
             F_position=Vector(self.body.position)
+
             self.body.ApplyForce(self.F*F_hat, F_position, True)
                         
         if self.τ:
@@ -538,8 +589,45 @@ def connect(obj1,obj2,connection_type,**kwargs):
     obj2.joints.append(joint)
                             
 
+class Storage(object):
+    def __init__(self):
+        self.data=[]
+    
+    def __add__(self,other):
+        s=Storage()
+        s+=other
+        return s
+        
+    def __iadd__(self,other):
+        self.append(*other)
+        return self
+        
+    def append(self,*args):
+        if not self.data:
+            for arg in args:
+                self.data.append([arg])
 
-def run_sim(env,act,total_time,dt=1/60,dt_display=1,
+        else:
+            for d,a in zip(self.data,args):
+                d.append(a)
+       
+    def arrays(self):
+        from numpy import array
+        for i in range(len(self.data)):
+            self.data[i]=array(self.data[i])
+
+        ret=tuple(self.data)
+        if len(ret)==1:
+            return ret[0]
+        else:
+            return ret
+
+    def __array__(self):
+        from numpy import vstack
+        return vstack(self.arrays())
+
+
+def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
             figure_width=10,
             plot_orientation=True):
     from IPython.display import clear_output
@@ -561,43 +649,42 @@ def run_sim(env,act,total_time,dt=1/60,dt_display=1,
 
             env.update(dt)
 
-            env.t+=dt
-
             if env.t>total_time:
                 stop=True
                 next_display_t=env.t-1
 
 
-            if env.t>=next_display_t:
-                next_display_t=env.t+dt_display
+            if not dt_display is None:
+                if env.t>=next_display_t:
+                    next_display_t=env.t+dt_display
 
-                clear_output(wait=True)
-                plt.figure(figsize=(figure_width,figure_width*env.height//env.width))
+                    clear_output(wait=True)
+                    plt.figure(figsize=(figure_width,figure_width*env.height//env.width))
 
-                if not env.im is None:
-                    plt.imshow(env.im,
-                    interpolation=None,
-                            extent=(0,env.width,0,env.height))
+                    if not env.im is None:
+                        plt.imshow(env.im,
+                        interpolation=None,
+                                extent=(0,env.width,0,env.height))
 
-                patches,colors = zip(*[(b.patch(),b.color) for b in env.objects+robot.objects])
-                p = PatchCollection(patches, 
-                                    facecolors=colors,
-                                cmap = matplotlib.cm.jet, 
-                                alpha = 0.8)
-                plt.gca().add_collection(p) 
-                
-                if plot_orientation:
-                    for obj in robot.objects:
-                        obj.plot_orientation()
+                    patches,colors = zip(*[(b.patch(),b.color) for b in env.objects+robot.objects])
+                    p = PatchCollection(patches, 
+                                        facecolors=colors,
+                                    cmap = matplotlib.cm.jet, 
+                                    alpha = 0.8)
+                    plt.gca().add_collection(p) 
+                    
+                    if plot_orientation:
+                        for obj in robot.objects:
+                            obj.plot_orientation()
 
-                plt.axis('equal')
-                plt.axis([0,env.width,0,env.height])
-                if env.robot.message is None:
-                    plt.title('%.2f' % env.t)
-                else:
-                    plt.title('%.2f Message: %s' % (env.t,
-                                str(env.robot.message)))
-                plt.show()
+                    plt.axis('equal')
+                    plt.axis([0,env.width,0,env.height])
+                    if env.robot.message is None:
+                        plt.title('%.2f' % env.t)
+                    else:
+                        plt.title('%.2f Message: %s' % (env.t,
+                                    str(env.robot.message)))
+                    plt.show()
 
 
         except KeyboardInterrupt:

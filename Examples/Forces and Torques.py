@@ -13,7 +13,7 @@ get_ipython().run_line_magic('pylab', 'inline')
 from RobotSim373 import *
 
 
-# In[5]:
+# In[3]:
 
 
 def build(robot):
@@ -46,7 +46,7 @@ def act(t,robot):
     
 
 
-# In[7]:
+# In[4]:
 
 
 env=Environment(24,24) 

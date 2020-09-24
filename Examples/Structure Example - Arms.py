@@ -109,7 +109,7 @@ def act(t,robot):
     
 
 
-# In[8]:
+# In[5]:
 
 
 env=Environment(24,24) 

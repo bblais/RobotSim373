@@ -13,7 +13,7 @@ get_ipython().run_line_magic('pylab', 'inline')
 from RobotSim373 import *
 
 
-# In[13]:
+# In[3]:
 
 
 def build_box(robot,x,y,name=''):
@@ -60,19 +60,17 @@ def build(robot):
     return robot
 
 
-# In[14]:
+# In[4]:
 
 
 def go_to_distance(robot,goal_distance):
-
     right=robot['bob:right']
     distance=right.read_distance()
     if distance>goal_distance:
         right.F=0.8
     else:
         right.F=-0.8
-        
-        
+           
 def avoid_black(robot):
     center=robot['bob:center']
     right=robot['bob:right']
@@ -82,7 +80,6 @@ def avoid_black(robot):
     if color[0]<0.4:
         right.F=-0.8
     
-    
 def scan_distances(robot):
     center=robot['bob:center']
     center.τ=.2
@@ -91,13 +88,11 @@ def scan_distances(robot):
     d=center.read_distance()
     robot.distances[a]=d
 
-    
 def act(t,robot):
 
     if t<2:
         return
-
-    
+  
     go_to_distance(robot,3)
     avoid_black(robot)
     scan_distances(robot)
@@ -105,7 +100,7 @@ def act(t,robot):
     robot.message=robot['bob:center'].read_distance()    
 
 
-# In[17]:
+# In[10]:
 
 
 env=Environment(image='images/black stripe.png') 
@@ -126,7 +121,7 @@ run_sim(env,act,
        )
 
 
-# In[18]:
+# In[11]:
 
 
 plot(robot.distances)
@@ -134,7 +129,7 @@ plot(robot.distances)
 
 # # What happens if I change the connection to the central disk to "weld" instead of "distance"?
 
-# In[19]:
+# In[21]:
 
 
 def build(robot):
@@ -152,7 +147,7 @@ def build(robot):
     return robot
 
 
-# In[20]:
+# In[22]:
 
 
 env=Environment(image='images/black stripe.png') 

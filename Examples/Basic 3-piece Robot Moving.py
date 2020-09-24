@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[12]:
 
 
 get_ipython().run_line_magic('pylab', 'inline')
 
 
-# In[2]:
+# In[13]:
 
 
 from RobotSim373 import *
 
 
-# In[18]:
+# In[14]:
 
 
 def build(robot):
@@ -45,7 +45,7 @@ def build_no_connect(robot):
         
 
 
-# In[19]:
+# In[15]:
 
 
 def act_forward_backward_example(t,robot):
@@ -87,7 +87,7 @@ def act_forward_turn_example(t,robot):
         
 
 
-# In[21]:
+# In[16]:
 
 
 env=Environment(24,24)  # size of the environment
@@ -102,11 +102,11 @@ for y in arange(1,20,0.5):
 run_sim(env,act_forward_backward_example,
         total_time=80,  # seconds
         dt=1/60,
-        dt_display=2,  # make this larger for a faster display
+        dt_display=.5,  # make this larger for a faster display
        )
 
 
-# In[22]:
+# In[18]:
 
 
 env=Environment(24,24)  # size of the environment
@@ -125,7 +125,7 @@ run_sim(env,act_forward_backward_example,
        )
 
 
-# In[24]:
+# In[19]:
 
 
 env=Environment(24,24)  # size of the environment
@@ -144,7 +144,7 @@ run_sim(env,act_center_force_example,
        )
 
 
-# In[25]:
+# In[20]:
 
 
 env=Environment(24,24)  # size of the environment
@@ -163,7 +163,7 @@ run_sim(env,act_center_force_example,
        )
 
 
-# In[9]:
+# In[11]:
 
 
 env=Environment(24,24)  # size of the environment
