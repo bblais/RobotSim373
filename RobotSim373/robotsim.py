@@ -381,7 +381,7 @@ class Box(object):
 
     @property
     def angle(self):
-        return self.body.angle*180/3.14159
+        return self.body.angle*180/3.14159 % 360
     
     def update(self,dt):
         if self.F:
@@ -499,7 +499,7 @@ class Disk(object):
     def read_color(self):
 
         if self.env.im is None:
-            return []
+            return [999.9,999.9,999.9]
 
         px,py=self.env.to_pixels(self.position.x,self.position.y)
         return self.env.im[py,px,:]
@@ -642,10 +642,27 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
 
     stop=False
     next_display_t=-1
+
+    if isinstance(act,list):  # a list of events and actions functions
+        start_times=[None]*len(act)
+    else:
+        start_times=0.0
+
     while not stop:
         try:
 
-            act(env.t,robot)
+            if isinstance(act,list):  # a list of events and actions functions
+                count=0
+                for event_function,action_function in act:
+                    if event_function(env.t,robot):
+                        if start_times[count] is None:
+                            start_times[count]=env.t
+                        action_function(env.t-start_times[count],robot)
+
+
+                    count+=1
+            else:
+                act(env.t,robot)
 
             env.update(dt)
 
