@@ -86,9 +86,9 @@ class RayCastMultipleCallback(b2RayCastCallback):
 # all units in real units
 class Environment(object):
 
-    def __init__(self,width=24,height=None,image=None):
+    def __init__(self,width=24,height=None,image=None,gravity=0):
 
-        self.world = b2.world(gravity=(0, 0), doSleep=True)
+        self.world = b2.world(gravity=(0, gravity), doSleep=True)
 
         if not image is None:
             if isinstance(image,str):                
@@ -569,6 +569,12 @@ def connect(obj1,obj2,connection_type,**kwargs):
                                 (obj1.body.position.x+obj2.body.position.x)/2,
                                 (obj1.body.position.y+obj2.body.position.y)/2,
                             ),**kwargs)
+    elif connection_type=='revolve':
+        joint = obj1.env.world.CreateRevoluteJoint(
+                            bodyA=obj1.body,
+                            bodyB=obj2.body,
+                            anchor= obj2.body.position,
+                            **kwargs)
 
     elif connection_type=='motor':
         offset=(obj1.body.position-obj2.body.position)/2
@@ -599,7 +605,11 @@ class Storage(object):
         return s
         
     def __iadd__(self,other):
-        self.append(*other)
+        try:
+            self.append(*other)
+        except TypeError: # non-iterable
+            self.append(other)
+
         return self
         
     def append(self,*args):
@@ -613,10 +623,13 @@ class Storage(object):
        
     def arrays(self):
         from numpy import array
-        for i in range(len(self.data)):
-            self.data[i]=array(self.data[i])
 
-        ret=tuple(self.data)
+        tmp=[]
+        for i in range(len(self.data)):
+            tmp.append(array(self.data[i]))
+            #self.data[i]=array(self.data[i])
+
+        ret=tuple(tmp)
         if len(ret)==1:
             return ret[0]
         else:
