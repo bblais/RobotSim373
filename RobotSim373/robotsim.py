@@ -243,6 +243,12 @@ class Robot(object):
         
         return self
 
+    def take_picture(self,filename='picture.png',show=False,**kwargs):
+        from matplotlib.pyplot import savefig,close
+        fig=display(self.env,show=show)
+        fig.savefig(filename,**kwargs)
+        if not show:
+            close(fig)
 
 class Box(object):
     
@@ -639,15 +645,63 @@ class Storage(object):
         from numpy import vstack
         return vstack(self.arrays())
 
-
-def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
-            figure_width=10,
-            plot_orientation=True):
+def display(env,robot=None,show=True):
     from IPython.display import clear_output
     import matplotlib
     from matplotlib import pyplot as plt
     from matplotlib.patches import Circle,Rectangle
     from matplotlib.collections import PatchCollection 
+
+
+    clear_output(wait=True)
+    fig=plt.figure(figsize=(env.figure_width,env.figure_width*env.height//env.width))
+    env.fig=fig
+    fig.clear()
+
+    ax=fig.subplots()
+
+    if not env.im is None:
+        ax.imshow(env.im,
+        interpolation=None,
+                extent=(0,env.width,0,env.height))
+
+    if not robot is None:
+        patches,colors = zip(*[(b.patch(),b.color) for b in env.objects+robot.objects])
+    else:
+        patches,colors = zip(*[(b.patch(),b.color) for b in env.objects])
+
+    p = PatchCollection(patches, 
+                        facecolors=colors,
+                    cmap = matplotlib.cm.jet, 
+                    alpha = 0.8)
+    ax.add_collection(p) 
+    
+    if not robot is None:
+        for obj in robot.objects:
+            obj.plot_orientation()
+
+    plt.axis('equal')
+    plt.axis([0,env.width,0,env.height])
+
+
+    if not robot is None:
+        if env.robot.message is None:
+            ax.set_title('%.2f' % env.t)
+        else:
+            ax.set_title('%.2f Message: %s' % (env.t,
+                        str(env.robot.message)))
+
+    if show:
+        plt.show()
+    return fig
+
+def close(env,fig):
+    from matplotlib import pyplot as plt
+    plt.close(fig)
+
+def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
+            figure_width=10,
+            plot_orientation=True):
     
     
     env.t=0
@@ -655,6 +709,8 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
 
     stop=False
     next_display_t=-1
+    env.figure_width=figure_width
+    fig=None
 
     if isinstance(act,list):  # a list of events and actions functions
         start_times=[None]*len(act)
@@ -687,38 +743,13 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
             if not dt_display is None:
                 if env.t>=next_display_t:
                     next_display_t=env.t+dt_display
+                    fig=display(env,robot)
 
-                    clear_output(wait=True)
-                    plt.figure(figsize=(figure_width,figure_width*env.height//env.width))
-
-                    if not env.im is None:
-                        plt.imshow(env.im,
-                        interpolation=None,
-                                extent=(0,env.width,0,env.height))
-
-                    patches,colors = zip(*[(b.patch(),b.color) for b in env.objects+robot.objects])
-                    p = PatchCollection(patches, 
-                                        facecolors=colors,
-                                    cmap = matplotlib.cm.jet, 
-                                    alpha = 0.8)
-                    plt.gca().add_collection(p) 
-                    
-                    if plot_orientation:
-                        for obj in robot.objects:
-                            obj.plot_orientation()
-
-                    plt.axis('equal')
-                    plt.axis([0,env.width,0,env.height])
-                    if env.robot.message is None:
-                        plt.title('%.2f' % env.t)
-                    else:
-                        plt.title('%.2f Message: %s' % (env.t,
-                                    str(env.robot.message)))
-                    plt.show()
 
 
         except KeyboardInterrupt:
             stop=True    
 
-
+    if not dt_display is None:
+        close(env,fig)
     
