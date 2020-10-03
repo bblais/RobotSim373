@@ -86,7 +86,15 @@ class RayCastMultipleCallback(b2RayCastCallback):
 # all units in real units
 class Environment(object):
 
-    def __init__(self,width=24,height=None,image=None,gravity=0):
+    def __init__(self,width=24,height=None,image=None,gravity=0,
+                    angularDamping=0.2,linearDamping=0.2,    # default values for objects
+                    restitution=0.2,friction=0.1,density=0.4):
+
+        self.angularDamping=angularDamping
+        self.linearDamping=linearDamping
+        self.restitution=restitution
+        self.friction=friction
+        self.density=density                   
 
         self.world = b2.world(gravity=(0, gravity), doSleep=True)
 
@@ -253,8 +261,11 @@ class Robot(object):
 class Box(object):
     
     def __init__(self,parent,x,y,angle=0,width=1,height=1,name=None,
-                angularDamping=0.2,linearDamping=0.2,
-                restitution=0.2,friction=0.1,density=0.4):
+                angularDamping=None,linearDamping=None,
+                restitution=None,friction=None,density=None):
+
+
+
         self.joints=[]
         self.motors=[]
 
@@ -264,6 +275,23 @@ class Box(object):
         else:
             self.env=parent.env
             self.parent=parent
+
+        # default values from environment
+        if angularDamping is None:
+            angularDamping=self.env.angularDamping
+
+        if linearDamping is None:
+            linearDamping=self.env.linearDamping
+
+        if restitution is None:
+            restitution=self.env.restitution
+
+        if friction is None:
+            friction=self.env.friction
+
+        if density is None:
+            density=self.env.density
+
 
         self.width=width
         self.height=height
@@ -412,8 +440,9 @@ class Box(object):
 class Disk(object):
     
     def __init__(self,parent,x,y,angle=0,radius=0.5,name=None,
-                angularDamping=0.2,linearDamping=0.2,
-                restitution=0.2,friction=0.1,density=0.4):
+                angularDamping=None,linearDamping=None,
+                restitution=None,friction=None,density=None):
+
         self.joints=[]
         self.motors=[]
 
@@ -423,6 +452,24 @@ class Disk(object):
         else:
             self.env=parent.env
             self.parent=parent
+
+        # default values from environment
+        if angularDamping is None:
+            angularDamping=self.env.angularDamping
+
+        if linearDamping is None:
+            linearDamping=self.env.linearDamping
+
+        if restitution is None:
+            restitution=self.env.restitution
+
+        if friction is None:
+            friction=self.env.friction
+
+        if density is None:
+            density=self.env.density
+
+
 
         self.radius=radius
         
@@ -680,8 +727,8 @@ def display(env,robot=None,show=True):
         for obj in robot.objects:
             obj.plot_orientation()
 
-    plt.axis('equal')
     plt.axis([0,env.width,0,env.height])
+    plt.axis('equal')
 
 
     if not robot is None:
