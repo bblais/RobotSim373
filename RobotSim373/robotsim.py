@@ -138,7 +138,7 @@ class Environment(object):
 
 
 
-        
+        self.plot_orientation=True
         self.t=0.0
 
         self.robot=None
@@ -723,12 +723,12 @@ def display(env,robot=None,show=True):
                     alpha = 0.8)
     ax.add_collection(p) 
     
-    if not robot is None:
+    if not robot is None and env.plot_orientation:
         for obj in robot.objects:
             obj.plot_orientation()
 
-    plt.axis([0,env.width,0,env.height])
     plt.axis('equal')
+    plt.axis([0,env.width,0,env.height])
 
 
     if not robot is None:
@@ -753,6 +753,8 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
     
     env.t=0
     robot=env.robot
+
+    env.plot_orientation=plot_orientation
 
     stop=False
     next_display_t=-1
