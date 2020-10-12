@@ -262,7 +262,7 @@ class Box(object):
     
     def __init__(self,parent,x,y,angle=0,width=1,height=1,name=None,
                 angularDamping=None,linearDamping=None,
-                restitution=None,friction=None,density=None):
+                restitution=None,friction=None,density=None,color='b'):
 
 
 
@@ -314,7 +314,8 @@ class Box(object):
         self.mass=self.body.mass
 
 
-        self.color='b'
+        self.color=color
+
         if name is None:
             self.name='Box %d' % len(self.parent.objects)
         else:
@@ -441,7 +442,7 @@ class Disk(object):
     
     def __init__(self,parent,x,y,angle=0,radius=0.5,name=None,
                 angularDamping=None,linearDamping=None,
-                restitution=None,friction=None,density=None):
+                restitution=None,friction=None,density=None,color='b'):
 
         self.joints=[]
         self.motors=[]
@@ -491,7 +492,7 @@ class Disk(object):
         self.τ=0
         self.mass=self.body.mass
 
-        self.color='b'
+        self.color=color
         if name is None:
             self.name='Circle %d' % len(self.parent.objects)
         else:
