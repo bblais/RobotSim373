@@ -182,45 +182,65 @@ class Environment(object):
         self.world.ClearForces()
         self.t+=dt
             
-class Controller(object):
 
-    def __init__(self,robot):
+class Controller(object):
+    """
+            stopwait = {
+                'stop':(stop,'wait1'),
+                'wait1':(wait(2),'forward'),
+                'forward':(forward,'wait2'),
+                'wait2':(wait(2),'stop')
+            }
+
+            state_machine={
+                'turn a bit':(turn_a_bit,'turn to minimum'),
+                'turn to minimum':(turn_to_min_distance,stopwait),
+            }
+    """
+    def __init__(self,robot,state_machine):
         self.robot=robot
-        self._actions=[]
-        self.next_actions=[]
-        self.current_action=0
+        self.state_machine=state_machine
+        self.original_state_machine=state_machine
+        self.current_state=self.state_machine.first_state
         self.start_time=0
         self.monitor=None
 
-    @property
-    def actions(self):
-        return self._actions
-    
-    @actions.setter
-    def actions(self,acts):
-        self._actions=acts
-        self.next_actions=list(range(1,len(self._actions)+1))
-        return acts
-
     def act(self,t):
-        if self.current_action>=len(self.actions):
-            return 
-
         if t==0.0:  # first time
-            self.current_action=0
-            self.start_time=0.0
-    
-        action=self.actions[self.current_action]
-        value=action(t-self.start_time,self.robot)
+            self.state_machine=self.original_state_machine
+            self.current_state=self.state_machine.first_state
+            self.start_time=0.0        
+        
+        current_actions,next_states=self.state_machine[self.current_state]
+        if not isinstance(current_actions,list):
+            current_actions=[current_actions]
+            
+        if isinstance(next_states,str):
+            next_states={True:next_states}
+        
+        for action in current_actions:
+            value=action(t-self.start_time,self.robot)
 
-        if value:  # done with this action
-            self.current_action=self.next_actions[self.current_action]
-            self.start_time=t
+            if value:  # done with this action
+                if isinstance(next_states,StateMachine):
+                    self.state_machine=next_states
+                    self.current_state=self.state_machine.first_state
+                else:
+                    self.current_state=next_states[value]
+                self.start_time=t
 
         if not self.monitor is None:
             self.monitor(t,self.robot)
 
+from collections import UserDict
+class StateMachine(UserDict):
 
+    def __init__(self,*args,first_state=None):
+        super(StateMachine, self).__init__(*args)
+        self.first_state=first_state
+
+
+    
     
 
 class Robot(object):
