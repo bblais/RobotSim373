@@ -182,6 +182,46 @@ class Environment(object):
         self.world.ClearForces()
         self.t+=dt
             
+class Controller(object):
+
+    def __init__(self,robot):
+        self.robot=robot
+        self._actions=[]
+        self.next_actions=[]
+        self.current_action=0
+        self.start_time=0
+        self.monitor=None
+
+    @property
+    def actions(self):
+        return self._actions
+    
+    @actions.setter
+    def actions(self,acts):
+        self._actions=acts
+        self.next_actions=list(range(1,len(self._actions)+1))
+        return acts
+
+    def act(self,t):
+        if self.current_action>=len(self.actions):
+            return 
+
+        if t==0.0:  # first time
+            self.current_action=0
+            self.start_time=0.0
+    
+        action=self.actions[self.current_action]
+        value=action(t-self.start_time,self.robot)
+
+        if value:  # done with this action
+            self.current_action=self.next_actions[self.current_action]
+            self.start_time=t
+
+        if not self.monitor is None:
+            self.monitor(t,self.robot)
+
+
+    
 
 class Robot(object):
     
@@ -193,6 +233,7 @@ class Robot(object):
         self.objects=[]
         
         self.message=None
+        self.storage=Storage()
         self.log=[]
 
     def update(self,dt):
@@ -257,6 +298,9 @@ class Robot(object):
         fig.savefig(filename,**kwargs)
         if not show:
             close(fig)
+
+    
+
 
 class Box(object):
     
@@ -780,6 +824,8 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
 
 
                     count+=1
+            elif isinstance(act,Controller):
+                act.act(env.t)
             else:
                 act(env.t,robot)
 
@@ -803,3 +849,4 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
     if not dt_display is None:
         close(env,fig)
     
+# %%
