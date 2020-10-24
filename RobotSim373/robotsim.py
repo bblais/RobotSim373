@@ -211,7 +211,13 @@ class Controller(object):
             self.current_state=self.state_machine.first_state
             self.start_time=0.0        
         
-        current_actions,next_states=self.state_machine[self.current_state]
+        try:
+            current_actions,next_states=self.state_machine[self.current_state]
+        except KeyError:
+            print("The current state is: ",self.current_state)
+            print("The available states are: ",list(self.state_machine.keys()))
+            raise
+
         if not isinstance(current_actions,list):
             current_actions=[current_actions]
             
@@ -221,13 +227,30 @@ class Controller(object):
         for action in current_actions:
             value=action(t-self.start_time,self.robot)
 
-            if value:  # done with this action
-                if isinstance(next_states,StateMachine):
+
+            if value: # done with this action
+                if isinstance(value,str):
+                    self.current_state=value
+                    if value=='_end_simulation':
+                        return True
+
+                    try:
+                        self.state_machine[self.current_state]
+                    except KeyError:
+                        print("The current state is: ",self.current_state)
+                        print("The available states are: ",list(self.state_machine.keys()))
+                        raise
+                elif isinstance(next_states,StateMachine):
                     self.state_machine=next_states
                     self.current_state=self.state_machine.first_state
                 else:
-                    self.current_state=next_states[value]
+                    self.current_state=next_states[value]                    
+                    if self.current_state=='_end_simulation':
+                        return True
+
                 self.start_time=t
+                break
+
 
         if not self.monitor is None:
             self.monitor(t,self.robot)
@@ -840,14 +863,24 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
                     if event_function(env.t,robot):
                         if start_times[count] is None:
                             start_times[count]=env.t
-                        action_function(env.t-start_times[count],robot)
+                        value=action_function(env.t-start_times[count],robot)
 
+                        if value:
+                            stop=True
+                            next_display_t=env.t-1
+                            break
 
                     count+=1
             elif isinstance(act,Controller):
-                act.act(env.t)
+                value=act.act(env.t)
+                if value:
+                    stop=True
+                    next_display_t=env.t-1
             else:
-                act(env.t,robot)
+                value=act(env.t,robot)
+                if value:
+                    stop=True
+                    next_display_t=env.t-1
 
             env.update(dt)
 
@@ -855,13 +888,10 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
                 stop=True
                 next_display_t=env.t-1
 
-
             if not dt_display is None:
                 if env.t>=next_display_t:
                     next_display_t=env.t+dt_display
                     fig=display(env,robot)
-
-
 
         except KeyboardInterrupt:
             stop=True    
