@@ -502,6 +502,10 @@ class Box(object):
         return self.body.linearVelocity[1]
 
     @property
+    def vangle(self):
+        return self.body.angularVelocity
+
+    @property
     def angle(self):
         return self.body.angle*180/3.14159 % 360
     
@@ -668,6 +672,11 @@ class Disk(object):
     def angle(self):
         return self.body.angle*180/3.14159
     
+
+    @property
+    def vangle(self):
+        return self.body.angularVelocity
+
     def update(self,dt):
         if self.F:
             F_hat=vec_mag_ang(1,degrees(self.body.angle)+self.F_angle)
