@@ -128,7 +128,10 @@ class Environment(object):
 
 
         self.boundary = self.world.CreateStaticBody(position=(0, 0),
-                    userData={'name':'walls'})
+                    userData={'name':'walls',
+                    'x':[0,self.width,self.width,0,0],
+                    'y':[self.height,self.height,0,0,self.height]},
+                    )
         self.boundary.CreateEdgeChain([(0, self.height),
                                 (self.width, self.height),
                                 (self.width, 0),
@@ -798,7 +801,7 @@ def display(env,robot=None,show=True):
 
 
     clear_output(wait=True)
-    fig=plt.figure(figsize=(env.figure_width,env.figure_width*env.height//env.width))
+    fig=plt.figure(figsize=(env.figure_width,env.height*env.figure_width/env.width))
     env.fig=fig
     fig.clear()
 
@@ -808,24 +811,32 @@ def display(env,robot=None,show=True):
         ax.imshow(env.im,
         interpolation=None,
                 extent=(0,env.width,0,env.height))
+    else:
+        if env.show_boundary:
+            bx,by=env.boundary.userData['x'],env.boundary.userData['y']
+            plt.plot(bx,by,'r--',linewidth=1)
+
 
     if not robot is None:
         patches,colors = zip(*[(b.patch(),b.color) for b in env.objects+robot.objects])
-    else:
+    elif env.objects:
         patches,colors = zip(*[(b.patch(),b.color) for b in env.objects])
+    else:
+        patches,colors=None,None
 
-    p = PatchCollection(patches, 
-                        facecolors=colors,
-                    cmap = matplotlib.cm.jet, 
-                    alpha = 0.8)
-    ax.add_collection(p) 
+    if patches:
+        p = PatchCollection(patches, 
+                            facecolors=colors,
+                        cmap = matplotlib.cm.jet, 
+                        alpha = 0.8)
+        ax.add_collection(p) 
     
     if not robot is None and env.plot_orientation:
         for obj in robot.objects:
             obj.plot_orientation()
 
     plt.axis('equal')
-    plt.axis([0,env.width,0,env.height])
+    plt.axis([-0.1,env.width+.1,-.1,env.height+.1])
 
 
     if not robot is None:
@@ -845,13 +856,15 @@ def close(env,fig):
 
 def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
             figure_width=10,
-            plot_orientation=True):
+            plot_orientation=True,
+            show_boundary=False):
     
     
     env.t=0
     robot=env.robot
 
     env.plot_orientation=plot_orientation
+    env.show_boundary=show_boundary
 
     stop=False
     next_display_t=-1
