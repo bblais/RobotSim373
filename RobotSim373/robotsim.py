@@ -340,8 +340,10 @@ class Robot(object):
 
     def take_picture(self,filename='picture.png',show=False,**kwargs):
         from matplotlib.pyplot import savefig,close
+
         fig=display(self.env,show=show)
         fig.savefig(filename,**kwargs)
+
         if not show:
             close(fig)
 
