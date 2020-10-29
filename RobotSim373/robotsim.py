@@ -264,7 +264,21 @@ class StateMachine(UserDict):
     def __init__(self,*args,first_state=None):
         super(StateMachine, self).__init__(*args)
         self.first_state=first_state
+        if self.first_state not in self:
+            print("The first state not found is: ",self.first_state)
+            print("The available states are: ",list(self.keys()))
 
+            raise KeyError("'%s'" % self.first_state)
+
+        for state in self.keys():
+            actions,next_states=self[state]
+            if isinstance(next_states,str):
+                try:
+                    self[next_states]
+                except KeyError:
+                    print("The state not found is: ",next_states)
+                    print("The available states are: ",list(self.keys()))
+                    raise
 
     
     
