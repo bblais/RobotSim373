@@ -264,6 +264,8 @@ class StateMachine(UserDict):
     def __init__(self,*args,first_state=None):
         super(StateMachine, self).__init__(*args)
         self.first_state=first_state
+        self['_end_simulation']=(None,None)
+
         if self.first_state not in self:
             print("The first state not found is: ",self.first_state)
             print("The available states are: ",list(self.keys()))
@@ -271,6 +273,7 @@ class StateMachine(UserDict):
             raise KeyError("'%s'" % self.first_state)
 
         for state in self.keys():
+
             actions,next_states=self[state]
             if isinstance(next_states,str):
                 try:
