@@ -173,6 +173,23 @@ class Environment(object):
         self.objects.append(other)
         return self
     
+    def __isub__(self,other):
+        if other in self.objects:
+            self.objects.remove(other)
+            del other
+            return self
+
+        if isinstance(other,str):
+            me=[_ for _ in self.objects if _.name==other]
+            if me:
+                for m in me:
+                    self.objects.remove(m)
+                    del m
+                return self            
+
+        return self
+
+
     def update(self,dt):
         
         if self.robot:
