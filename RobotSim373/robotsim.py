@@ -264,7 +264,13 @@ class Controller(object):
                     self.state_machine=next_states
                     self.current_state=self.state_machine.first_state
                 else:
-                    self.current_state=next_states[value]                    
+                    try:
+                        self.current_state=next_states[value]
+                    except TypeError:
+                        print("Problem with %s" % self.current_state)
+                        print("The next state given is %s" % str(value))
+                        raise
+                    
                     if self.current_state=='_end_simulation':
                         return True
 
