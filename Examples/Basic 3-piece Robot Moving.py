@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[12]:
+# In[1]:
 
 
 get_ipython().run_line_magic('pylab', 'inline')
 
 
-# In[13]:
+# In[2]:
 
 
 from RobotSim373 import *
 
 
-# In[14]:
+# In[3]:
 
 
 def build(robot):
@@ -45,7 +45,7 @@ def build_no_connect(robot):
         
 
 
-# In[15]:
+# In[4]:
 
 
 def act_forward_backward_example(t,robot):
@@ -87,7 +87,7 @@ def act_forward_turn_example(t,robot):
         
 
 
-# In[16]:
+# In[5]:
 
 
 env=Environment(24,24)  # size of the environment
@@ -125,7 +125,7 @@ run_sim(env,act_forward_backward_example,
        )
 
 
-# In[19]:
+# In[7]:
 
 
 env=Environment(24,24)  # size of the environment
@@ -163,7 +163,7 @@ run_sim(env,act_center_force_example,
        )
 
 
-# In[11]:
+# In[8]:
 
 
 env=Environment(24,24)  # size of the environment

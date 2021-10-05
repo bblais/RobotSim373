@@ -15,7 +15,7 @@ from RobotSim373 import *
 
 # Each object in a robot has a color sensor, for the pixel below that part (center).
 
-# In[12]:
+# In[3]:
 
 
 def build(robot):
@@ -32,7 +32,7 @@ def build(robot):
     return robot
 
 
-# In[14]:
+# In[4]:
 
 
 def act_forward_backward_example(t,robot):
@@ -65,7 +65,7 @@ run_sim(env,act_forward_backward_example,
        )
 
 
-# In[7]:
+# In[5]:
 
 
 image=ones((12,24,3))
@@ -75,7 +75,7 @@ image[:6,:12,:]=[0,1,1]
 imshow(image)
 
 
-# In[8]:
+# In[6]:
 
 
 env=Environment(image=image) 
@@ -94,7 +94,7 @@ run_sim(env,act_forward_backward_example,
        )
 
 
-# In[9]:
+# In[7]:
 
 
 image=ones((12,24,3))
@@ -106,7 +106,7 @@ image=image/image.max()
 imshow(image)
 
 
-# In[10]:
+# In[8]:
 
 
 def act_forward_until_black(t,robot):
@@ -128,7 +128,7 @@ def act_forward_until_black(t,robot):
     #robot.message=str(robot['left'].read_color())+str(robot['right'].read_color())+str((px1,py1))+str((px2,py2))+str((x1,y1))+str((x2,y2))
 
 
-# In[11]:
+# In[9]:
 
 
 env=Environment(image=image) 

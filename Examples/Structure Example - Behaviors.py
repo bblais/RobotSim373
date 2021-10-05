@@ -100,7 +100,7 @@ def act(t,robot):
     robot.message=robot['bob:center'].read_distance()    
 
 
-# In[10]:
+# In[5]:
 
 
 env=Environment(image='images/black stripe.png') 
@@ -121,7 +121,7 @@ run_sim(env,act,
        )
 
 
-# In[11]:
+# In[6]:
 
 
 plot(robot.distances)
@@ -129,7 +129,7 @@ plot(robot.distances)
 
 # # What happens if I change the connection to the central disk to "weld" instead of "distance"?
 
-# In[21]:
+# In[7]:
 
 
 def build(robot):
@@ -147,7 +147,7 @@ def build(robot):
     return robot
 
 
-# In[22]:
+# In[8]:
 
 
 env=Environment(image='images/black stripe.png') 

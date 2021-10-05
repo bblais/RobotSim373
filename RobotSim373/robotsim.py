@@ -83,11 +83,12 @@ class RayCastMultipleCallback(b2RayCastCallback):
         self.normals.append(b2Vec2(normal))
         return 1.0
 
+
 # all units in real units
 class Environment(object):
 
     def __init__(self,width=24,height=None,image=None,gravity=0,
-                    angularDamping=0.2,linearDamping=0.2,    # default values for objects
+                    angularDamping=0.0,linearDamping=0.0,    # default values for objects
                     restitution=0.2,friction=0.1,density=0.4):
 
         self.angularDamping=angularDamping
@@ -95,6 +96,7 @@ class Environment(object):
         self.restitution=restitution
         self.friction=friction
         self.density=density                   
+
 
         self.world = b2.world(gravity=(0, gravity), doSleep=True)
 
@@ -202,6 +204,17 @@ class Environment(object):
         self.world.ClearForces()
         self.t+=dt
             
+
+class FrictionEnvironment(Environment):
+
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        if not 'linearDamping' in kwargs:
+            self.linearDamping=10.0
+
+        if not 'angularDamping' in kwargs:
+            self.angularDamping=10.0
+        
 
 class Controller(object):
     """
@@ -322,6 +335,7 @@ class Robot(object):
         self.storage=Storage()
         self.log=[]
 
+
     def update(self,dt):
         for obj in self.objects:
             obj.update(dt)
@@ -395,7 +409,6 @@ class Box(object):
     def __init__(self,parent,x,y,angle=0,width=1,height=1,name=None,
                 angularDamping=None,linearDamping=None,
                 restitution=None,friction=None,density=None,color='b'):
-
 
 
         self.joints=[]
@@ -515,13 +528,25 @@ class Box(object):
     
     def patch(self):
         from matplotlib.patches import Circle,Rectangle        
-        return Rectangle((self.corner_x,self.corner_y),
+        return Rectangle((self.corner_x,self._corner_y),
                                self.width,self.height,
                                self.angle)        
     
     @property
+    def _corner_x(self):
+        return self.corner_position[0]
+
+
+    @property
+    def _corner_y(self):
+        return self.corner_position[1]
+    
+    
+    @property
     def corner_x(self):
         return self.corner_position[0]
+
+
     @property
     def corner_y(self):
         return self.corner_position[1]
@@ -533,6 +558,7 @@ class Box(object):
     @property
     def x(self):
         return self.position[0]
+
     @property
     def y(self):
         return self.position[1]
@@ -903,6 +929,7 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
     
     
     env.t=0
+    env.dt=dt
     robot=env.robot
 
     env.plot_orientation=plot_orientation
