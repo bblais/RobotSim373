@@ -98,12 +98,11 @@ class ContactListener(b2ContactListener):
             f=obj.fixture
             if f in [fixture_a,fixture_b]:
                 obj.contact=True
-                obj.end_contact=False
 
 
     def EndContact(self, contact):
         pass
-            
+
     def PreSolve(self, contact, oldManifold):
         pass
     def PostSolve(self, contact, impulse):
@@ -117,13 +116,14 @@ class Environment(object):
 
     def __init__(self,width=24,height=None,image=None,gravity=0,
                     angularDamping=0.0,linearDamping=0.0,    # default values for objects
-                    restitution=0.2,friction=0.1,density=0.4):
+                    restitution=0.2,friction=0.1,density=0.4,plot_F_scale=1):
 
         self.angularDamping=angularDamping
         self.linearDamping=linearDamping
         self.restitution=restitution
         self.friction=friction
-        self.density=density                   
+        self.density=density           
+        self.plot_F_scale=plot_F_scale
 
         self.world = b2.world(gravity=(0, gravity), 
                             contactListener=ContactListener(self),
@@ -244,6 +244,9 @@ class FrictionEnvironment(Environment):
         if not 'angularDamping' in kwargs:
             self.angularDamping=10.0
         
+
+        if not 'plot_F_scale' in kwargs:
+            self.plot_F_scale=0.1
 
 class Controller(object):
     """
@@ -437,7 +440,9 @@ class Box(object):
     
     def __init__(self,parent,x,y,angle=0,width=1,height=1,name=None,
                 angularDamping=None,linearDamping=None,
-                restitution=None,friction=None,density=None,color='b'):
+                restitution=None,friction=None,density=None,color='b',
+                plot_F_scale=None,
+                ):
 
 
         self.joints=[]
@@ -465,6 +470,9 @@ class Box(object):
 
         if density is None:
             density=self.env.density
+
+        if plot_F_scale is None:
+            self.plot_F_scale=self.env.plot_F_scale
 
 
         self.width=width
@@ -627,7 +635,9 @@ class Box(object):
         x2,y2=self.width/2*cos(radians(self.angle))+x1,self.width/2*sin(radians(self.angle))+y1
         plot([x1,x2],[y1,y2],'r-',lw=1)
 
-        x2,y2=self.F/2*cos(radians(self.angle+self.F_angle))+x1,self.F/2*sin(radians(self.angle+self.F_angle))+y1
+        x2,y2=(self.F/2*self.plot_F_scale*cos(radians(self.angle+self.F_angle))+x1,
+               self.F/2*self.plot_F_scale*sin(radians(self.angle+self.F_angle))+y1)
+
         plot([x1,x2],[y1,y2],'c-',lw=1)
 
 
@@ -635,10 +645,14 @@ class Disk(object):
     
     def __init__(self,parent,x,y,angle=0,radius=0.5,name=None,
                 angularDamping=None,linearDamping=None,
-                restitution=None,friction=None,density=None,color='b'):
+                restitution=None,friction=None,
+                density=None,color='b',
+                plot_F_scale=None,
+                ):
 
         self.joints=[]
         self.motors=[]
+
 
         if isinstance(parent,Environment):
             self.env=parent
@@ -663,7 +677,8 @@ class Disk(object):
         if density is None:
             density=self.env.density
 
-
+        if plot_F_scale is None:
+            self.plot_F_scale=self.env.plot_F_scale
 
         self.radius=radius
         
@@ -741,7 +756,8 @@ class Disk(object):
         x2,y2=self.radius*cos(radians(self.angle))+x1,self.radius*sin(radians(self.angle))+y1
         plot([x1,x2],[y1,y2],'r-',lw=1)
 
-        x2,y2=self.F/2*cos(radians(self.angle+self.F_angle))+x1,self.F/2*sin(radians(self.angle+self.F_angle))+y1
+        x2,y2=(self.F/2*self.plot_F_scale*cos(radians(self.angle+self.F_angle))+x1,
+               self.F/2*self.plot_F_scale*sin(radians(self.angle+self.F_angle))+y1)
         plot([x1,x2],[y1,y2],'c-',lw=1)
 
     def read_color(self):
