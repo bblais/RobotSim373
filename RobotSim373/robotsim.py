@@ -1,6 +1,6 @@
 from numpy import sin,cos,degrees,radians,ndarray,sqrt
 from matplotlib.pyplot import imread
-from Box2D import b2,b2PolygonShape
+from Box2D import b2,b2PolygonShape,b2ContactListener
 from Box2D import b2Vec2 as Vector
 
 import matplotlib
@@ -84,6 +84,34 @@ class RayCastMultipleCallback(b2RayCastCallback):
         return 1.0
 
 
+class ContactListener(b2ContactListener):
+    def __init__(self,env):
+        b2ContactListener.__init__(self)
+        self.env=env
+
+    def BeginContact(self, contact):
+        fixture_a = contact.fixtureA
+        fixture_b = contact.fixtureB
+
+
+        for obj in self.env.robot.objects:
+            f=obj.fixture
+            if f in [fixture_a,fixture_b]:
+                obj.contact=True
+                obj.end_contact=False
+
+
+    def EndContact(self, contact):
+        pass
+            
+    def PreSolve(self, contact, oldManifold):
+        pass
+    def PostSolve(self, contact, impulse):
+        pass
+
+
+
+
 # all units in real units
 class Environment(object):
 
@@ -97,8 +125,9 @@ class Environment(object):
         self.friction=friction
         self.density=density                   
 
-
-        self.world = b2.world(gravity=(0, gravity), doSleep=True)
+        self.world = b2.world(gravity=(0, gravity), 
+                            contactListener=ContactListener(self),
+                            doSleep=True)
 
         if not image is None:
             if isinstance(image,str):                
@@ -466,6 +495,8 @@ class Box(object):
         else:
             self.name=name
             
+        self.contact=False
+
         self.parent+=self
 
     def read_distance(self):
@@ -661,6 +692,7 @@ class Disk(object):
             self.name=name
         
         self.parent+=self
+        self.contact=False
 
         
 
@@ -985,6 +1017,7 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
                     fig=display(env,robot)
 
         except KeyboardInterrupt:
+            fig=display(env,robot)
             stop=True    
 
     if not dt_display is None:
