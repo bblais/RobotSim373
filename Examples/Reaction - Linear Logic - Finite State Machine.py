@@ -45,7 +45,7 @@ def act(t,robot):
     
 
 
-# In[10]:
+# In[5]:
 
 
 env=Environment(24,24)  # size of the environment
@@ -66,7 +66,7 @@ run_sim(env,act,
 
 # ## Do this then that
 
-# In[5]:
+# In[6]:
 
 
 def act1(t,robot):
@@ -90,7 +90,7 @@ def act3(t,robot):
     
 
 
-# In[6]:
+# In[7]:
 
 
 env=Environment(24,24)  # size of the environment
@@ -109,7 +109,7 @@ run_sim(env,[act1,act2,act3],
        )
 
 
-# In[7]:
+# In[8]:
 
 
 def forward(t,robot):
@@ -118,7 +118,7 @@ def forward(t,robot):
     return True
 
 
-# In[8]:
+# In[9]:
 
 
 def backward(t,robot):
@@ -127,7 +127,7 @@ def backward(t,robot):
     return True
 
 
-# In[9]:
+# In[10]:
 
 
 def until_close(t,robot):
@@ -136,7 +136,7 @@ def until_close(t,robot):
         return True
 
 
-# In[10]:
+# In[11]:
 
 
 def until_far(t,robot):
@@ -145,7 +145,7 @@ def until_far(t,robot):
         return True
 
 
-# In[11]:
+# In[13]:
 
 
 env=Environment(24,24)  # size of the environment
@@ -158,7 +158,52 @@ for y in arange(1,20,0.5):
     Box(env,20,y,width=0.2,height=0.2,density=0.01)
 
 run_sim(env,[forward,until_close,backward,until_far],
-        total_time=80,  # seconds
+        total_time=100,  # seconds
+        dt=1/60,
+        dt_display=.5,  # make this larger for a faster display
+       )
+
+
+# In[17]:
+
+
+def forward(t,robot):
+    robot['left'].F=4
+    robot['right'].F=4
+    robot.message='forward'
+    return True
+
+
+# In[18]:
+
+
+def backward(t,robot):
+    robot['left'].F=-4
+    robot['right'].F=-4
+    robot.message='backward'
+    return True
+
+
+# In[ ]:
+
+
+
+
+
+# In[19]:
+
+
+env=FrictionEnvironment(24,24)  # size of the environment
+robot=Robot(env)
+
+robot=build(robot)
+
+# put a bunch of blocks
+for y in arange(1,20,0.5):
+    Box(env,20,y,width=0.2,height=0.2,density=0.01)
+
+run_sim(env,[forward,until_close,backward,until_far],
+        total_time=100,  # seconds
         dt=1/60,
         dt_display=.5,  # make this larger for a faster display
        )

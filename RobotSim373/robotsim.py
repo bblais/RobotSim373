@@ -999,7 +999,7 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
     env.figure_width=figure_width
     fig=None
 
-    if isinstance(act,list):  # a list of events and actions functions, or list of act functions
+    if isinstance(act,list):  # a list of act functions returning True to continue
         start_times=[None]*len(act)
     else:
         start_times=0.0
@@ -1008,38 +1008,21 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
 
     while not stop:
         try:
-
             if isinstance(act,list):  
-                try:
-                    act[0][0]
-                    count=0
-                    for event_function,action_function in act:
-                        if event_function(env.t,robot):
-                            if start_times[count] is None:
-                                start_times[count]=env.t
-                            value=action_function(env.t-start_times[count],robot)
+                action_function=act[count]
+                if start_times[count] is None:
+                    start_times[count]=env.t                    
+                value=action_function(env.t-start_times[count],robot)
+                if value=='_end_simulation':
+                    stop=True
+                    next_display_t=env.t-1
+                    break
 
-                            if value:
-                                stop=True
-                                next_display_t=env.t-1
-                                break
-
-                        count+=1
-                except TypeError:  # a list of act functions, which return True to continue
-                    action_function=act[count]
-                    if start_times[count] is None:
-                        start_times[count]=env.t                    
-                    value=action_function(env.t-start_times[count],robot)
-                    if value=='_end_simulation':
-                        stop=True
-                        next_display_t=env.t-1
-                        break
-
-                    if value:  # next action
-                        count+=1
-                        if count>=len(act): # loop back to start of list
-                            count=0
-                            start_times=[None]*len(act)
+                if value:  # next action
+                    count+=1
+                    if count>=len(act): # loop back to start of list
+                        count=0
+                        start_times=[None]*len(act)
 
             elif isinstance(act,Controller):
                 value=act.act(env.t)
