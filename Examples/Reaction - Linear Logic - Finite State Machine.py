@@ -51,7 +51,7 @@ def act(t,robot):
 env=Environment(24,24)  # size of the environment
 robot=Robot(env)
 
-robot=build(robot)
+build(robot)
 
 # put a bunch of blocks
 for y in arange(1,20,0.5):
@@ -96,7 +96,7 @@ def act3(t,robot):
 env=Environment(24,24)  # size of the environment
 robot=Robot(env)
 
-robot=build(robot)
+build(robot)
 
 # put a bunch of blocks
 for y in arange(1,20,0.5):
@@ -164,23 +164,21 @@ run_sim(env,[forward,until_close,backward,until_far],
        )
 
 
-# In[17]:
+# In[26]:
 
 
 def forward(t,robot):
     robot['left'].F=4
     robot['right'].F=4
-    robot.message='forward'
     return True
 
 
-# In[18]:
+# In[27]:
 
 
 def backward(t,robot):
     robot['left'].F=-4
     robot['right'].F=-4
-    robot.message='backward'
     return True
 
 
@@ -190,13 +188,12 @@ def backward(t,robot):
 
 
 
-# In[19]:
+# In[28]:
 
 
 env=FrictionEnvironment(24,24)  # size of the environment
 robot=Robot(env)
-
-robot=build(robot)
+build(robot)
 
 # put a bunch of blocks
 for y in arange(1,20,0.5):
@@ -210,6 +207,44 @@ run_sim(env,[forward,until_close,backward,until_far],
 
 
 # ## Finite State Machine
+
+# In[29]:
+
+
+state_machine=StateMachine(
+    {
+     'forward':(forward,'until close'),
+     'until close':(until_close,'backward'),
+     'backward':(backward,'until far'),
+     'until far':(until_far,'forward'),
+    },
+    first_state='forward'
+)
+
+def monitor(t,robot):
+    robot.message=robot.controller.current_state
+
+
+# In[35]:
+
+
+env=FrictionEnvironment(24,24)  # size of the environment
+robot=Robot(env)
+
+build(robot)
+robot.controller=Controller(robot,state_machine)
+robot.controller.monitor=monitor
+
+# put a bunch of blocks
+for y in arange(1,20,0.5):
+    Box(env,20,y,width=0.2,height=0.2,density=0.01)
+
+run_sim(env,robot.controller,
+        total_time=100,  # seconds
+        dt=1/60,
+        dt_display=.5,  # make this larger for a faster display
+       )
+
 
 # In[ ]:
 
