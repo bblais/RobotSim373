@@ -236,122 +236,177 @@ class Environment(object):
 
 class FrictionEnvironment(Environment):
 
-    def __init__(self,*args,**kwargs):
+    def __init__(self,*args,damping=10,**kwargs):
         super().__init__(*args,**kwargs)
         if not 'linearDamping' in kwargs:
-            self.linearDamping=10.0
+            self.linearDamping=damping
 
         if not 'angularDamping' in kwargs:
-            self.angularDamping=10.0
+            self.angularDamping=damping
         
 
         if not 'plot_F_scale' in kwargs:
             self.plot_F_scale=0.1
 
+
+   
+
 class Controller(object):
     """
-            stopwait = {
-                'stop':(stop,'wait1'),
-                'wait1':(wait(2),'forward'),
-                'forward':(forward,'wait2'),
-                'wait2':(wait(2),'stop')
-            }
+        forward_stop=StateMachine(
+            (forward,'until_close'),
+            ( (until_close,stop),'_end_simulation'),
+            name='forward_stop'
+        )
 
-            state_machine={
-                'turn a bit':(turn_a_bit,'turn to minimum'),
-                'turn to minimum':(turn_to_min_distance,stopwait),
-            }
+        state_machine=StateMachine(
+            (forward,'until_close'),
+            ( (until_close,stop),'look_left'),
+            ( (look_left,save_distance_left,wait(2)),'look_right'),
+            ( (look_right,save_distance_right,wait(2)),'look_straight'),
+            (look_straight,'choose_right_or_left'),
+            (choose_right_or_left,'_end_simulation'),
+            (turn_left_45,'forward_stop'),
+            (turn_right_45,'forward_stop'),
+            (forward_stop,'_end_simulation'),
+
+        )    
     """
-    def __init__(self,robot,state_machine):
-        self.robot=robot
+    def __init__(self,state_machine,verbose=False):
         self.state_machine=state_machine
         self.original_state_machine=state_machine
         self.current_state=self.state_machine.first_state
         self.start_time=0
+        self.state_count=0
         self.monitor=None
+        self.verbose=verbose
 
-    def act(self,t):
+        
+    def __call__(self,t,robot):
+        return self.act(t,robot)
+        
+    def act(self,t,robot):
         if t==0.0:  # first time
             self.state_machine=self.original_state_machine
             self.current_state=self.state_machine.first_state
-            self.start_time=0.0        
+            self.start_time=0.0  
+            self.state_count=0      
         
         try:
-            current_actions,next_states=self.state_machine[self.current_state]
+            current_actions=self.state_machine.states[self.current_state]['actions']
+            next_state=self.state_machine.states[self.current_state]['next']
         except KeyError:
             print("The current state is: ",self.current_state)
-            print("The available states are: ",list(self.state_machine.keys()))
+            print("The available states are: ",self.state_machine.states)
             raise
 
-        if not isinstance(current_actions,list):
-            current_actions=[current_actions]
             
-        if isinstance(next_states,str):
-            next_states={True:next_states}
+        action=current_actions[self.state_count]
         
-        for action in current_actions:
-            value=action(t-self.start_time,self.robot)
+        if isinstance(action,StateMachine):  # skip to next StateMachine
+            self.state_count=0
+            self.state_machine=action
+            self.current_state=self.state_machine.first_state
+            current_actions=self.state_machine.states[self.current_state]['actions']
+            next_state=self.state_machine.states[self.current_state]['next']
+            self.start_time=t
+            action=current_actions[self.state_count]
+        
+        
+        
+        value=action(t-self.start_time,robot)
 
+        
+        
+        if value: # done with this action
+            if self.verbose:
+                print("value=",value)
+            self.start_time=t
+            
+            if isinstance(value,str):
+                self.current_state=value
+                self.state_count=0
 
-            if value: # done with this action
-                if isinstance(value,str):
-                    self.current_state=value
-                    if value=='_end_simulation':
-                        return True
-
+                if value=='_end_simulation':
+                    return True
+                elif value !="_next_state":
+                    self.state_count=0
+                    
                     try:
-                        self.state_machine[self.current_state]
+                        self.state_machine.states[self.current_state]
                     except KeyError:
                         print("The current state is: ",self.current_state)
-                        print("The available states are: ",list(self.state_machine.keys()))
-                        raise
-                elif isinstance(next_states,StateMachine):
-                    self.state_machine=next_states
-                    self.current_state=self.state_machine.first_state
-                else:
-                    try:
-                        self.current_state=next_states[value]
-                    except TypeError:
-                        print("Problem with %s" % self.current_state)
-                        print("The next state given is %s" % str(value))
+                        print("The available states are: ",self.state_machine.states)
                         raise
                     
-                    if self.current_state=='_end_simulation':
-                        return True
+
+            else:  # next action
+                self.state_count+=1
+                if self.state_count>=len(current_actions): # do next state
+                    value="_next_state"
+                    self.state_count=0
+                else:
+                    if self.verbose:
+                        print(self.state_count,current_actions[self.state_count])
+
+
+
+            if value=='_next_state':
+                if self.verbose:
+                    print(value,next_state)
+                    
+                self.current_state=next_state
+                
+                if self.current_state=='_end_simulation':
+                    return True
+
+                try:
+                    self.state_machine.states[self.current_state]
+                except KeyError:
+                    print("The current state is: ",self.current_state)
+                    print("The available states are: ",self.state_machine.states)
+                    raise
+
 
                 self.start_time=t
-                break
+            
 
 
         if not self.monitor is None:
-            self.monitor(t,self.robot)
+            self.monitor(t,robot)
+from collections import OrderedDict
 
-from collections import UserDict
-class StateMachine(UserDict):
+class StateMachine(object):
 
-    def __init__(self,*args,first_state=None):
-        super(StateMachine, self).__init__(*args)
-        self.first_state=first_state
-        self['_end_simulation']=(None,None)
+    def __init__(self,*args,name=None):
+        self.__name__=name
+        
+        self.functions={}
+        self.states=OrderedDict()
+        
+        for i,arg in enumerate(args):
+            if isinstance(arg[0],tuple) or isinstance(arg[0],list):
+                key=arg[0][0].__name__
+                self.states[key]={'actions':arg[0],"next":arg[1]}
+                for func in arg[0]:
+                    self.functions[func.__name__]=func
+            else:
+                func=arg[0]
+                key=arg[0].__name__
+                self.states[key]={'actions':[arg[0]],"next":arg[1]}
+                self.functions[func.__name__]=func
+        
+        self.states["_end_simulation"]={'actions':None,"next":None}
+        
+        self.first_state=list(self.states.keys())[0]    
 
-        if self.first_state not in self:
-            print("The first state not found is: ",self.first_state)
-            print("The available states are: ",list(self.keys()))
-
-            raise KeyError("'%s'" % self.first_state)
-
-        for state in self.keys():
-
-            actions,next_states=self[state]
-            if isinstance(next_states,str):
-                try:
-                    self[next_states]
-                except KeyError:
-                    print("The state not found is: ",next_states)
-                    print("The available states are: ",list(self.keys()))
-                    raise
-
-    
+        for key in self.states:
+            if key=="_end_simulation":
+                continue
+            next_state=self.states[key]['next']
+            if next_state not in self.states:
+                raise ValueError(f"Key '{next_state}' not found in {self.states.keys()}")
+        
     
 
 class Robot(object):
@@ -375,6 +430,10 @@ class Robot(object):
     @property
     def mass(self):
         return sum([obj.mass for obj in self.objects])
+
+    def read_distances(self):
+        return {obj.name:obj.read_distance() for obj in self.objects}
+
 
     @property
     def forces(self):
@@ -789,7 +848,7 @@ class Disk(object):
     
     @property
     def angle(self):
-        return self.body.angle*180/3.14159
+        return self.body.angle*180/3.14159 % 360
     
 
     @property
@@ -918,6 +977,15 @@ def wait(dt):
 
     return _wait
 
+def message2str(message):
+    if isinstance(message,tuple):
+        return " ".join([message2str(_) for _ in message])
+    elif isinstance(message,float):
+        return "{:.2f}".format(message)
+    else:
+        return str(message)
+
+
 
 def display(env,robot=None,show=True):
     from IPython.display import clear_output
@@ -971,7 +1039,7 @@ def display(env,robot=None,show=True):
             ax.set_title('%.2f' % env.t)
         else:
             ax.set_title('%.2f Message: %s' % (env.t,
-                        str(env.robot.message)))
+                        message2str(env.robot.message)))
 
     if show:
         plt.show()
@@ -1024,11 +1092,6 @@ def run_sim(env,act,total_time,dt=1.0/60,dt_display=1,
                         count=0
                         start_times=[None]*len(act)
 
-            elif isinstance(act,Controller):
-                value=act.act(env.t)
-                if value:
-                    stop=True
-                    next_display_t=env.t-1
             else:
                 value=act(env.t,robot)
                 if value:
