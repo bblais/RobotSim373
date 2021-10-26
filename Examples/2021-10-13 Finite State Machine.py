@@ -13,7 +13,7 @@ get_ipython().run_line_magic('pylab', 'inline')
 from RobotSim373 import *
 
 
-# In[5]:
+# In[3]:
 
 
 def build(robot):
@@ -28,7 +28,7 @@ def build(robot):
     connect(disk1,box2,"distance")    
 
 
-# In[8]:
+# In[4]:
 
 
 def forward(t,robot):
@@ -57,7 +57,7 @@ def until_far(t,robot):
     
 
 
-# In[7]:
+# In[5]:
 
 
 env=Environment(24,24)
@@ -76,7 +76,7 @@ run_sim(env,[forward,until_close,backward,until_far],
 
 # ## rewrite with finite state machine
 
-# In[9]:
+# In[6]:
 
 
 def forward(t,robot):
@@ -151,7 +151,7 @@ run_sim(env,robot.controller,
 
 # ### first, introduce a friction environment -- makes stopping easier
 
-# In[61]:
+# In[7]:
 
 
 def forward(t,robot):
@@ -263,7 +263,7 @@ def monitor(t,robot):
 
 
 
-# In[62]:
+# In[8]:
 
 
 state_machine=StateMachine(
@@ -284,7 +284,7 @@ state_machine=StateMachine(
 )
 
 
-# In[67]:
+# In[12]:
 
 
 env=FrictionEnvironment(24,24)
@@ -295,8 +295,8 @@ robot.controller=Controller(state_machine)
 robot.controller.monitor=monitor
 
 #Box(env,x=15,y=6,width=0.2,height=10)   # should turn left
-#Box(env,x=15,y=14,width=0.2,height=10)  # should turn right
-Box(env,x=15,y=12,width=0.2,height=20)  # should back up
+Box(env,x=15,y=14,width=0.2,height=10)  # should turn right
+#Box(env,x=15,y=12,width=0.2,height=20)  # should back up
 
 run_sim(env,robot.controller,
         figure_width=6,

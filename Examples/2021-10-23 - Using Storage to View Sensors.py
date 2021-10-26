@@ -28,47 +28,50 @@ def build(robot):
     connect(disk1,box2,"distance")    
 
 
-# In[4]:
+# In[7]:
 
 
 def act(t,robot):
     
     distance=robot['center'].read_distance()
     
-    if distance>10:
-        robot['left'].F=0.4
-        robot['right'].F=0.4   
+    if t<0.5:
+        robot['center'].τ=0.1
     else:
-        robot['left'].F=0.1
-        robot['right'].F=0.1   
+        robot['center'].τ=0.0
+    
+    robot.storage += t,distance
     
     robot.message=distance
 
 
-# In[5]:
-
-
-def randbetween(low,high):
-    return rand()*(high-low)+low
-
-
-# In[7]:
+# In[8]:
 
 
 env=Environment(24,24)
 robot=Robot(env)
 build(robot)
 
-for i in range(10):
-    Box(env,x=randbetween(10,20),y=randbetween(5,20),width=randbetween(.2,.8),height=2,angle=randbetween(0,360),
-            color='purple')
-
-
 run_sim(env,act,
         figure_width=6,
        total_time=13,
-       dt_display=0.1,  # make this larger for a faster display
+       dt_display=0.3,  # make this larger for a faster display
        )
+
+
+# In[9]:
+
+
+t,distance=robot.storage.arrays()
+
+
+# In[14]:
+
+
+plot(t,distance)
+xlabel("distance")
+ylabel("time")
+savefig("/Users/bblais/Desktop/test.png", transparent=True)
 
 
 # In[ ]:

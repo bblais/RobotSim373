@@ -13,7 +13,7 @@ get_ipython().run_line_magic('pylab', 'inline')
 from RobotSim373 import *
 
 
-# In[7]:
+# In[3]:
 
 
 def build(robot):
@@ -28,7 +28,7 @@ def build(robot):
     connect(disk1,box2,"distance")    
 
 
-# In[8]:
+# In[4]:
 
 
 def act1(t,robot):
@@ -38,7 +38,7 @@ def act1(t,robot):
     
 
 
-# In[9]:
+# In[5]:
 
 
 def act2(t,robot):
@@ -48,7 +48,7 @@ def act2(t,robot):
     
 
 
-# In[10]:
+# In[6]:
 
 
 def act3(t,robot):
@@ -64,7 +64,7 @@ def act3(t,robot):
 
 
 
-# In[11]:
+# In[7]:
 
 
 env=Environment(24,24)
@@ -83,7 +83,7 @@ run_sim(env,[act1,act2,act3],
 
 # ## rewrite the distance sensor example in terms of behaviors
 
-# In[14]:
+# In[8]:
 
 
 def forward(t,robot):
@@ -112,7 +112,7 @@ def until_far(t,robot):
     
 
 
-# In[15]:
+# In[9]:
 
 
 env=Environment(24,24)

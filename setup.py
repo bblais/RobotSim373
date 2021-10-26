@@ -11,8 +11,8 @@ setup(
   packages=['RobotSim373'],
   install_requires=[
           'box2d',
+          'python-pptx',
           'matplotlib',
-          'pyglet',
       ],
 )
 
