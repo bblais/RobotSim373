@@ -19,7 +19,7 @@ from RobotSim373 import *
 from RobotSim373.utils import pptx2build
 
 
-# In[12]:
+# In[4]:
 
 
 pptx2build('test drawing.pptx')
@@ -64,29 +64,29 @@ run_sim(env,act,
        )
 
 
-# In[2]:
+# In[5]:
 
 
-fname='/Users/bblais/Downloads/dawson test robot drawing.pptx'
+fname='/Users/bblais/Downloads/Robot Drawing.pptx'
 from pptx import Presentation
 
 prs=Presentation(fname)
 
 
-# In[3]:
+# In[6]:
 
 
 slide=prs.slides[0]
 
 
-# In[4]:
+# In[7]:
 
 
 for shape in slide.shapes:
     print(shape.name)
 
 
-# In[6]:
+# In[8]:
 
 
 from RobotSim373.utils import pptx2build
