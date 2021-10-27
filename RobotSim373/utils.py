@@ -59,7 +59,7 @@ def pptx2build(fname):
         shape_info={}
         shape_type=shape.name.split()[0]
         
-        if shape_type=="Rounded":
+        if shape_type=="Rounded" or 'Rounded' in shape.name:
             env['left']=shape.left
             env['top']=shape.top
             env['width']=shape.width
