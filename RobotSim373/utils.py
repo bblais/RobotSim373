@@ -48,6 +48,10 @@ def pptx2build(fname):
     slide=prs.slides[0]
 
     env={}
+    env['left']=0
+    env['top']=0
+    env['width']=prs.slide_width
+    env['height']=prs.slide_height
 
 
     shapes_info=[]
