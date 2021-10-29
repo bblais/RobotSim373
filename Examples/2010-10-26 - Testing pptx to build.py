@@ -25,7 +25,7 @@ from RobotSim373.utils import pptx2build
 pptx2build('test drawing.pptx')
 
 
-# In[5]:
+# In[18]:
 
 
 def build(robot):
@@ -37,18 +37,18 @@ def build(robot):
     connect(disk3,box1,'weld')
     connect(disk3,box2,'weld')
     
-    robot.offset(dx=5)
+    robot.offset(dx=20)
 
 
-# In[6]:
+# In[19]:
 
 
 def act(t,robot):
-    robot['box1'].F=.1
+    robot['box1'].F=0
     pass
 
 
-# In[7]:
+# In[20]:
 
 
 env=Environment(24,24)
@@ -56,7 +56,7 @@ robot=Robot(env)
 build(robot)
 
 
-# In[12]:
+# In[21]:
 
 
 run_sim(env,act,
@@ -66,33 +66,22 @@ run_sim(env,act,
        )
 
 
-# In[5]:
+# In[23]:
 
 
-fname='/Users/bblais/Downloads/Robot Drawing.pptx'
-from pptx import Presentation
-
-prs=Presentation(fname)
+o=robot.objects[0]
 
 
-# In[6]:
+# In[25]:
 
 
-slide=prs.slides[0]
+o.body.position[0]+=5
 
 
-# In[7]:
+# In[26]:
 
 
-for shape in slide.shapes:
-    print(shape.name)
-
-
-# In[8]:
-
-
-from RobotSim373.utils import pptx2build
-pptx2build(fname)
+o.body.position
 
 
 # In[ ]:

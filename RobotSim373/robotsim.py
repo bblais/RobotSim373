@@ -426,10 +426,10 @@ class Robot(object):
 
         if not dx is None:
             for obj in self.objects:
-                obj.position[0]+=dx
+                obj.body.bposition[0]+=dx
         if not dy is None:
             for obj in self.objects:
-                obj.position[1]+=dy
+                obj.body.position[1]+=dy
 
 
     def update(self,dt):
