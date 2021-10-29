@@ -328,6 +328,9 @@ class Controller(object):
                 self.state_count=0
 
                 if value=='_end_simulation':
+                    if not self.monitor is None:
+                        self.monitor(t,robot)
+
                     return True
                 elif value !="_next_state":
                     self.state_count=0
