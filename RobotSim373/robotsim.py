@@ -359,6 +359,12 @@ class Controller(object):
                     print(value,next_state)
                     
                 self.current_state=next_state
+
+                if isinstance(self.current_state,StateMachine):
+                    self.state_machine=self.current_state
+                    self.current_state=self.state_machine.first_state
+                    self.state_count=0      
+
                 
                 if self.current_state=='_end_simulation':
                     return True
@@ -407,6 +413,10 @@ class StateMachine(object):
             if key=="_end_simulation":
                 continue
             next_state=self.states[key]['next']
+
+            if isinstance(next_state,StateMachine):
+                continue
+
             if next_state not in self.states:
                 raise ValueError(f"Key '{next_state}' not found in {self.states.keys()}")
         
