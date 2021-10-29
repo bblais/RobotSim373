@@ -422,6 +422,15 @@ class Robot(object):
         self.storage=Storage()
         self.log=[]
 
+    def offset(self,dx=None,dy=None):
+
+        if not dx is None:
+            for obj in self.objects:
+                obj.x+=dx
+        if not dy is None:
+            for obj in self.objects:
+                obj.y+=dy
+
 
     def update(self,dt):
         for obj in self.objects:
