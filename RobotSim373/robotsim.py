@@ -426,7 +426,7 @@ class Robot(object):
 
         if not dx is None:
             for obj in self.objects:
-                obj.body.bposition[0]+=dx
+                obj.body.position[0]+=dx
         if not dy is None:
             for obj in self.objects:
                 obj.body.position[1]+=dy

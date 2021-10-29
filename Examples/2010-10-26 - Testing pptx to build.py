@@ -25,7 +25,7 @@ from RobotSim373.utils import pptx2build
 pptx2build('test drawing.pptx')
 
 
-# In[18]:
+# In[5]:
 
 
 def build(robot):
@@ -40,7 +40,7 @@ def build(robot):
     robot.offset(dx=20)
 
 
-# In[19]:
+# In[6]:
 
 
 def act(t,robot):
@@ -48,7 +48,7 @@ def act(t,robot):
     pass
 
 
-# In[20]:
+# In[7]:
 
 
 env=Environment(24,24)
