@@ -396,12 +396,19 @@ class StateMachine(object):
         for i,arg in enumerate(args):
             if isinstance(arg[0],tuple) or isinstance(arg[0],list):
                 key=arg[0][0].__name__
+                _next=arg[1]
+                if key=='_wait':
+                    key=arg[0]._key
+
                 self.states[key]={'actions':arg[0],"next":arg[1]}
                 for func in arg[0]:
                     self.functions[func.__name__]=func
             else:
                 func=arg[0]
                 key=arg[0].__name__
+                if key=='_wait':
+                    key=arg[0]._key
+
                 self.states[key]={'actions':[arg[0]],"next":arg[1]}
                 self.functions[func.__name__]=func
         
@@ -996,6 +1003,9 @@ def wait(dt):
             return False
         else:
             return True
+
+    f=_wait
+    f._key='wait(%g)' % dt
 
     return _wait
 
