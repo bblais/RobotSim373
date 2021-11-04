@@ -699,6 +699,13 @@ class Box(object):
     def vy(self):
         return self.body.linearVelocity[1]
 
+    @vy.setter
+    def vy(self,value):
+        self.body.linearVelocity[1]=value
+
+
+
+
     @property
     def vangle(self):
         return self.body.angularVelocity
@@ -874,6 +881,9 @@ class Disk(object):
     @property
     def vy(self):
         return self.body.linearVelocity[1]
+    @vy.setter
+    def vy(self,value):
+        self.body.linearVelocity[1]=value
     
     @property
     def angle(self):
