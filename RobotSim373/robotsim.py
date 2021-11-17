@@ -1013,7 +1013,7 @@ class Storage(object):
 
 def until_xy(x,y):
     
-    def _until_xy(t,act):
+    def _until_xy(t,robot):
         try:
             xx=robot.original_x
         except AttributeError: 
