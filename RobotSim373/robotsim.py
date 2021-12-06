@@ -1024,7 +1024,7 @@ def until_xy(x,y,name='center'):
             
         robot.current_distance2=(x-robot[name].x)**2+(y-robot[name].y)**2
 
-        if robot.current_distance2<1 and robot.current_distance2>robot.last_distance2:  # stop when getting farther away
+        if robot.current_distance2<10 and robot.current_distance2>robot.last_distance2:  # stop when getting farther away
             del robot.original_x, robot.original_y,robot.last_distance2
             return True
         
