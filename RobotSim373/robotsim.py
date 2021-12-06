@@ -1011,18 +1011,18 @@ class Storage(object):
         from numpy import vstack
         return vstack(self.arrays())
 
-def until_xy(x,y):
+def until_xy(x,y,name='center'):
     
     def _until_xy(t,robot):
         try:
             xx=robot.original_x
         except AttributeError: 
-            robot.original_x=robot['center'].x
-            robot.original_y=robot['center'].y
+            robot.original_x=robot[name].x
+            robot.original_y=robot[name].y
             robot.original_distance2=(x-robot.original_x)**2+(y-robot.original_y)**2
             robot.last_distance2=robot.original_distance2
             
-        robot.current_distance2=(x-robot['center'].x)**2+(y-robot['center'].y)**2
+        robot.current_distance2=(x-robot[name].x)**2+(y-robot[name].y)**2
 
         if robot.current_distance2<1 and robot.current_distance2>robot.last_distance2:  # stop when getting farther away
             del robot.original_x, robot.original_y,robot.last_distance2
