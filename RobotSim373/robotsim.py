@@ -1033,7 +1033,40 @@ def until_xy(x,y,name='center'):
         
     return _until_xy
             
+def until_x(x,name='center'):
+    
+    def _until_x(t,robot):
+        try:
+            xx=robot.original_x
+        except AttributeError: 
+            robot.original_x=robot[name].x
+            robot.original_dx_sign=(x-robot.original_x)>0
+            
+        robot.current_dx_sign=(x-robot[name].x)>0
+
+        if robot.current_dx_sign!=robot.original_dx_sign:  # stop when crossing 
+            del robot.original_x, robot.current_dx_sign,robot.original_dx_sign
+            return True    
         
+    return _until_x
+            
+def until_y(y,name='center'):
+    
+    def _until_y(t,robot):
+        try:
+            yy=robot.original_y
+        except AttributeError: 
+            robot.original_y=robot[name].y
+            robot.original_dy_sign=(y-robot.original_y)>0
+            
+        robot.current_dy_sign=(y-robot[name].y)>0
+
+        if robot.current_dy_sign!=robot.original_dy_sign:  # stop when crossing 
+            del robot.original_y, robot.current_dy_sign,robot.original_dy_sign
+            return True    
+        
+    return _until_y
+                     
  
 
 def wait(dt):
